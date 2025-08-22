@@ -46,8 +46,9 @@ async function register(req, res, next){
             email: Joi.string().email().required(),
             senha: Joi.string().min(8).max(255).required()
             .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])'))
+            
         }
-    )
+    ).strict();
 
     const { error, value } = createUserSchema.validate(req.body);
 
@@ -117,7 +118,7 @@ async function deleteUser(req, res){
             return res.status(500).json({ message: "Erro ao deletar usuário" });
         }
 
-        return res.status(204).json();
+        return res.status(204).send();
     
 
     } catch (error) {

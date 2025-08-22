@@ -13,6 +13,15 @@ async function findAll(req, res) {
 async function findById(req, res) {
   try {
     const { id } = req.params;
+    
+    const idNum = Number(id);
+
+    if (!Number.isInteger(idNum)) {
+      return res.status(400).json({
+        status: 400,
+        message: "ID inválido: deve ser um número inteiro",
+      });
+    }
 
     const agente = await agentesRepository.findAgentById(id);
     if(!agente){
@@ -171,6 +180,8 @@ async function partialUpdate(req, res) {
 async function deleteAgent(req, res) {
 
     const { id } = req.params;
+
+
 
     const existingAgent = await agentesRepository.findAgentById(id);
     if (!existingAgent){

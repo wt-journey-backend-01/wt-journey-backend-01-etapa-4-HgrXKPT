@@ -22,7 +22,7 @@ async function insertUser(userData){
 
 async function updatedUser(id,userData) {
     const query = db('usuarios');
-    const [user] = query.where({ id }).update(userData).returning('*');
+    const [user] = await query.where({ id }).update(userData).returning('*');
     return user
 }
 

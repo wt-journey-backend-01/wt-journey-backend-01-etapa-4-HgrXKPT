@@ -1,16 +1,16 @@
 
 const express = require('express');
 const authController = require('../controllers/authController.js');
-const routes = express.Router();
+const authRoutes = express.Router();
 
 
-routes.post('/login', authController.login);
+authRoutes.post('/login', authController.login);
 
-routes.post('/register', authController.register);
+authRoutes.post('/register', authController.register);
 
-routes.post('/logout', authController.register);
+authRoutes.post('/logout', authController.logout);
 
-routes.delete('/delete/:id', authController.deleteUser);
+authRoutes.delete('/users/:id', authController.deleteUser);
 
 
-module.exports = routes;
+module.exports = authRoutes;
