@@ -10,7 +10,7 @@ const swaggerSpec = require('./docs/swagger');
 const casosRoute = require('./routes/casosRoutes')
 const agentesRoute = require('./routes/agentesRoutes')
 const authRoute = require('./routes/authRoutes');
-const usuariosRoute = require('./routes/UsuariosRoutes');
+const usuariosRoute = require('./routes/UsuariosRoutes')
 const authMiddleware = require('./middlewares/authMiddleware');
 
 
@@ -22,8 +22,7 @@ app.use(express.json());
 
 
 app.use('/docs',  swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use('/auth', authRoute);
-app.use('/users', usuariosRoute);
+app.use('/users', authRoute);
 app.use('/casos',authMiddleware , casosRoute);
 app.use('/agentes',authMiddleware ,agentesRoute);
 

@@ -8,8 +8,6 @@ const express = require('express');
 function authMiddleware(req, res, next) {
     try{
 
-        const SECRET = process.env.JWT_SECRET || "secret";
-
         const tokenHeader = req.headers.authorization;
 
          if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {

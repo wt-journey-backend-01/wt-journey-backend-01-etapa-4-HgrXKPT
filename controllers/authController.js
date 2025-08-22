@@ -2,7 +2,7 @@
 const usuariosRepository = require("../repositories/usuariosRepository.js");
 const Bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const tokenUtils = require('../utils/tokenUtils');
+const tokenUtils = require('../utils/tokenUtils.js');
 
 const Joi = require("joi");
 
@@ -40,11 +40,11 @@ async function login(req, res){
        return res.status(401).json({ message: "Senha inválida" });
     }
 
-    const acessToken = tokenUtils.generateAccessToken(user);
+    const accessToken = tokenUtils.generateAccessToken(user);
     const refreshToken = tokenUtils.generateRefreshToken(user);
 
     return res.status(200).json({
-        access_token: acessToken,
+        access_token: accessToken,
         refresh_token: refreshToken
         });
 }
@@ -84,7 +84,7 @@ try{
 }
 
 async function register(req, res, next){
-    try{
+
         const createUserSchema = Joi.object(
         {
             nome: Joi.string().min(3).max(100).required(),
@@ -127,15 +127,7 @@ async function register(req, res, next){
     });
 
    return res.status(201).json(newUser);
-    }catch (error) {
-        return res.status(500).json({
-            status: 500,
-            message: "Erro ao registrar usuário",
-            errors: {
-                internal: error.message
-            }
-        });
-    }
+    
     
 }
 
