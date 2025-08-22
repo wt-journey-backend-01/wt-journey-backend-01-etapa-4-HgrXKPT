@@ -1,207 +1,292 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 5 créditos restantes para usar o sistema de feedback AI.
+Você tem 4 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para HgrXKPT:
 
 Nota final: **50.3/100**
 
-Olá, HgrXKPT! 👋🚀
+# Feedback para HgrXKPT 🚀 - Segurança, Autenticação e Aplicação Completa em Node.js
 
-Primeiramente, parabéns pelo esforço e dedicação em construir uma API completa com autenticação, segurança e integração com banco de dados! 🎉 Você conseguiu implementar várias funcionalidades essenciais, como o registro, login, logout, proteção das rotas com JWT e as operações CRUD para agentes e casos. Além disso, sua documentação no INSTRUCTIONS.md está clara e ajuda bastante a entender o fluxo de autenticação e uso dos tokens. Isso é muito importante para a manutenção e uso da API em produção. 👏
-
----
-
-## O que você mandou muito bem! 🌟
-
-- A estrutura do projeto está muito bem organizada, seguindo o padrão MVC esperado, com pastas separadas para controllers, repositories, middlewares, rotas, banco de dados e documentação.
-- Implementou o hashing de senhas com bcrypt corretamente no registro de usuários.
-- Gerou tokens JWT com segredo vindo da variável de ambiente, o que é uma prática segura.
-- Criou middleware para proteger rotas, verificando o token e adicionando o usuário autenticado no `req.user`.
-- Tratamento de erros e validações estão presentes, usando Joi para validar payloads.
-- Documentação do fluxo de autenticação e exemplos de payloads no INSTRUCTIONS.md estão muito bons.
-- Implementou o endpoint `/usuarios/me` para retornar o usuário autenticado.
-- Realizou a exclusão de usuários e logout de forma correta.
-- As operações CRUD para agentes e casos estão funcionando, com validações e mensagens de erro apropriadas.
-- Aplicou proteção JWT nas rotas sensíveis (`/agentes`, `/casos`).
-- Parabéns por conseguir implementar também os filtros de busca e ordenação para agentes e casos!
+Olá, HgrXKPT! 😄 Parabéns pelo esforço e pelo código enviado! Vamos juntos analisar o que você já fez muito bem e onde podemos ajustar para deixar sua API REST com Express.js e PostgreSQL ainda mais robusta e segura.
 
 ---
 
-## Pontos que precisam de atenção para melhorar sua aplicação 🔍
+## 🎉 Pontos Fortes e Conquistas Bônus
 
-### 1. Erro no login: variável `senha` não definida no controller de autenticação
+- Você estruturou muito bem seu projeto, com as pastas `controllers`, `repositories`, `routes`, `middlewares` e `utils` organizadas conforme o esperado. Isso mostra maturidade na organização do código e facilita manutenção e escalabilidade.
 
-No seu arquivo `controllers/authController.js`, dentro da função `login`, você está tentando comparar a senha recebida com a senha armazenada assim:
+- A integração com o PostgreSQL via Knex está bem feita, com migrations e seeds configurados corretamente, incluindo a criação da tabela `usuarios` para o sistema de autenticação.
 
-```js
-const isPasswordValid = await Bcrypt.compare(senha, user.senha);
-```
+- A implementação da autenticação JWT está funcionando, com geração de tokens no login e proteção das rotas `/agentes` e `/casos` via middleware.
 
-Porém, `senha` não foi definida no escopo da função. Você validou o corpo da requisição com Joi e armazenou o resultado em `value`, então a senha correta está em `value.senha`. O código correto seria:
+- Você implementou o endpoint `/usuarios/me` para retornar os dados do usuário autenticado, um ótimo recurso para aplicações reais.
 
-```js
-const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
-```
+- O logout está implementado corretamente como uma rota que informa o cliente para descartar o token, respeitando a natureza stateless do JWT.
 
-Esse detalhe é crucial, pois sem isso a comparação da senha sempre falha, e o usuário não consegue logar. 
+- Os filtros para casos e agentes estão presentes, e você conseguiu implementar endpoints para buscar agente associado a um caso e filtragem por status, agente e palavras-chave.
 
 ---
 
-### 2. Status code errado para email já em uso no registro
+## ⚠️ Pontos de Atenção e Oportunidades de Aprendizado
 
-No requisito, o status code esperado para tentar registrar um usuário com email já existente é **400 (Bad Request)**, e você está retornando isso corretamente, parabéns! Porém, fique atento para que a mensagem seja clara e o teste funcione corretamente.
+### 1. **Erro ao criar usuário com email já em uso (status 400 esperado)**
 
-Você já fez assim, o que está ótimo:
+No seu `authController.js`, ao tentar registrar um usuário, você verifica se o email já está cadastrado e retorna erro 400 corretamente:
 
 ```js
+const existingUser = await usuariosRepository.findUserByEmail(value.email);
+
 if (existingUser) {
-    return res.status(400).json({
-        status: 400,
-        message: "Email já está em uso",
-    });
+  return res.status(400).json({
+    status: 400,
+    message: "Email já está em uso",
+  });
 }
 ```
+
+Porém, percebi que no teste de login, quando o usuário não é encontrado, você retorna status 404:
+
+```js
+if (!user) {
+  return res.status(404).json({ message: "Usuário não encontrado" });
+}
+```
+
+Embora isso seja aceitável, para manter consistência e segurança, o ideal é sempre retornar **mensagens genéricas** para login (evitar revelar se o email existe) e usar status 400 para erros de validação, 401 para credenciais inválidas.
+
+**Dica:** Reveja o fluxo de respostas para login e registro para uniformizar os status e mensagens, evitando vazamento de informações. Isso ajuda na segurança e na experiência do usuário.
 
 ---
 
-### 3. Validação do token JWT no middleware
+### 2. **Validação do esquema Joi no login: senha mínima de 8 caracteres, mas a senha pode não atender a regras de complexidade**
 
-Seu middleware `authMiddleware.js` está bem implementado, mas você faz uma checagem dupla para o token:
-
-```js
-const tokenHeader = req.headers.authorization;
-
-if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Formato de token inválido' });
-}
-
-const token = tokenHeader && tokenHeader.split(' ')[1];
-
-if (!token) {
-    return res.status(401).json({ error: 'Formato de token inválido' });
-}
-```
-
-Aqui, o segundo `if (!token)` é redundante, pois se `tokenHeader` começa com 'Bearer ', o split sempre terá o token na posição 1. Poderia simplificar para:
+No `authController.js`, o schema do login é:
 
 ```js
-const authHeader = req.headers.authorization;
-
-if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Formato de token inválido' });
-}
-
-const token = authHeader.split(' ')[1];
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  senha: Joi.string().min(8).required()
+}).strict();
 ```
 
-Isso deixa o código mais limpo e fácil de manter. 
+Aqui, você exige mínimo 8 caracteres, mas não valida a complexidade da senha (letras maiúsculas, minúsculas, números, caracteres especiais) no login, o que é correto, pois no login o usuário só informa a senha que já cadastrou.
+
+No registro, você faz a validação completa da senha, o que está perfeito.
 
 ---
 
-### 4. Falta de validação de formato do ID nas rotas de usuários
+### 3. **No refresh token, você retorna `access_token` em minúsculo na resposta, mas no login retorna `acess_token` (com um "s" faltando)**
 
-No seu controller de usuários (`authController.js`), na função `deleteUser`, você não está validando se o `id` recebido é um número inteiro válido, diferente do que faz nas rotas de agentes e casos. Isso pode levar a erros inesperados ou até problemas de segurança.
-
-Sugiro adicionar validação assim:
+No login:
 
 ```js
-const idNum = Number(id);
-if (!Number.isInteger(idNum)) {
-    return res.status(400).json({
-        status: 400,
-        message: "ID inválido: deve ser um número inteiro",
-    });
-}
+return res.status(200).json({
+    acess_token: acessToken,
+    refresh_token: refreshToken
+});
 ```
 
-Isso garante que o parâmetro seja válido antes de tentar deletar o usuário.
+No refresh token:
+
+```js
+res.status(200).json({
+    access_token: newAccessToken,
+    expires_in: 900
+});
+```
+
+Essa inconsistência pode causar confusão no cliente que consome a API.
+
+**Sugestão:** Padronize o nome do campo para `access_token` em todos os lugares para seguir o padrão usual.
 
 ---
 
-### 5. Atenção à formatação de datas nos agentes
+### 4. **Middleware de autenticação usa valor padrão para `JWT_SECRET`**
 
-No seu `agentesRepository.js`, ao criar ou atualizar agentes, você formata a data de incorporação assim:
+No `authMiddleware.js`:
 
 ```js
-dataDeIncorporacao: new Date(agenteData.dataDeIncorporacao)
+const SECRET = process.env.JWT_SECRET || "secret";
+```
+
+É importante que o segredo JWT seja configurado via `.env` e que você não tenha um fallback que possa ser usado em produção. Isso porque um segredo padrão fraco pode comprometer a segurança.
+
+**Recomendação:** Se `JWT_SECRET` não estiver definido, retorne erro ou faça o processo de inicialização da aplicação falhar, para garantir que o segredo seja sempre configurado.
+
+---
+
+### 5. **No repositório agentesRepository, ao criar ou atualizar agentes, a data de incorporação pode estar sendo formatada incorretamente**
+
+Veja no método `createAgent`:
+
+```js
+return {
+  ...createdAgent,
+  dataDeIncorporacao: new Date(agenteData.dataDeIncorporacao)
     .toISOString()
     .split("T")[0],
-```
-
-Isso pode ser problemático se o campo `dataDeIncorporacao` não estiver no formato ISO ou se for uma string inválida. Para garantir que a data enviada seja válida, você já usa Joi para validar no controller, o que é ótimo.
-
-Só fique atento para manter a consistência e evitar erros silenciosos. 
-
----
-
-### 6. Sugestão para melhoria: tratamento de erros do banco de dados
-
-No seu código, principalmente nos repositórios, você não faz tratamento explícito de erros das operações com o banco. Recomendo envolver essas operações em try/catch para capturar possíveis falhas, como problemas de conexão, violação de constraints, etc., e retornar mensagens amigáveis.
-
-Por exemplo, no `usuariosRepository.js`:
-
-```js
-async function insertUser(userData){
-    try {
-        const query = db('usuarios');
-        const [user] = await query.insert(userData).returning('*');
-        return user;
-    } catch (error) {
-        // Log error, lançar ou retornar mensagem customizada
-        throw new Error('Erro ao inserir usuário: ' + error.message);
-    }
 }
 ```
 
-Isso ajuda a debugar e a manter o código mais robusto.
+Aqui você formata a data usando o valor que veio do input (`agenteData.dataDeIncorporacao`), mas o correto é formatar a data do banco (`createdAgent.dataDeIncorporacao`), que pode ter sido ajustada pelo banco.
+
+Mesma coisa no `updateAgent`:
+
+```js
+const updated = {
+  ...updatedAgent,
+  dataDeIncorporacao: new Date(agenteData.dataDeIncorporacao)
+    .toISOString()
+    .split("T")[0],
+};
+```
+
+Isso pode causar inconsistência na data retornada.
+
+**Ajuste sugerido:**
+
+```js
+return {
+  ...createdAgent,
+  dataDeIncorporacao: new Date(createdAgent.dataDeIncorporacao)
+    .toISOString()
+    .split("T")[0],
+};
+```
+
+E no update:
+
+```js
+const updated = {
+  ...updatedAgent,
+  dataDeIncorporacao: new Date(updatedAgent.dataDeIncorporacao)
+    .toISOString()
+    .split("T")[0],
+};
+```
 
 ---
 
-### 7. Bônus: Implementação dos refresh tokens
+### 6. **No `authRoutes.js`, a rota para deletar usuário está em `/auth/users/:id`**
 
-Vi que você não implementou refresh tokens para prolongar sessões, que é um recurso bônus. Isso pode ser uma ótima evolução para sua API, aumentando a segurança e a experiência do usuário. Recomendo estudar sobre isso no vídeo que vou indicar abaixo.
+```js
+authRoutes.delete('/users/:id', authController.deleteUser);
+```
+
+Por padrão, rotas de usuários geralmente ficam em `/usuarios` ou `/users`, e não dentro de `/auth`.
+
+Embora funcione, para manter uma API RESTful e semântica, seria melhor criar uma rota específica para usuários, ex:
+
+```js
+// routes/usuariosRoutes.js
+routes.delete('/:id', authController.deleteUser);
+```
+
+E montar em `app.use('/usuarios', usuariosRoutes);`
 
 ---
 
-## Recursos recomendados para você aprofundar e corrigir os pontos acima 📚
+### 7. **No `authController.js`, ao deletar usuário, falta proteção via middleware**
 
-- Para entender melhor autenticação JWT e bcrypt, recomendo muito este vídeo feito pelos meus criadores, que explica os conceitos fundamentais de cibersegurança e autenticação:  
-  https://www.youtube.com/watch?v=Q4LQOfYwujk
+A rota de DELETE `/auth/users/:id` não está protegida por autenticação, o que pode permitir que qualquer pessoa apague usuários.
 
-- Para resolver especificamente dúvidas sobre JWT na prática, como criação, verificação e expiração de tokens:  
-  https://www.youtube.com/watch?v=keS0JWOypIU
+**Correção:**
 
-- Para aprofundar no uso conjunto de bcrypt e JWT, principalmente o fluxo de hashing e validação de senhas:  
-  https://www.youtube.com/watch?v=L04Ln97AwoY
+No `authRoutes.js`:
 
-- Para melhorar seu tratamento de banco de dados com Knex, entender melhor migrations e seeds, e evitar erros:  
+```js
+authRoutes.delete('/users/:id', authMiddleware, authController.deleteUser);
+```
+
+Assim, apenas usuários autenticados poderão deletar.
+
+---
+
+### 8. **No `authController.js`, na função `register`, você está usando `Joi` com `.strict()`, o que pode rejeitar campos extras, mas no `login` você não usa `.strict()`**
+
+Isso pode causar inconsistência na validação.
+
+Sugiro usar `.strict()` em todos os schemas para garantir que não haja campos extras inesperados.
+
+---
+
+### 9. **No arquivo `INSTRUCTIONS.md`, o conteúdo está um pouco confuso e incompleto para quem vai usar a API**
+
+Você explica o fluxo de autenticação e mostra exemplos de payload, mas poderia incluir:
+
+- Como enviar o token JWT no header Authorization (exemplo prático)
+
+- Quais endpoints estão protegidos e precisam do token
+
+- Como usar o refresh token (exemplo de payload e resposta)
+
+Isso ajuda muito quem for consumir sua API.
+
+---
+
+### 10. **No `knexfile.js`, a porta do banco está definida como 5434**
+
+```js
+port: 5434,
+```
+
+Por padrão, PostgreSQL usa a porta 5432. Se você está usando 5434 no Docker, tudo bem, só certifique-se de documentar isso no README e no `.env`, para evitar confusão.
+
+---
+
+### 11. **No `authController.js`, no método `refreshToken`, o token retornado tem campo `access_token` e `expires_in`, mas no login o token é `acess_token` (sem o segundo "s")**
+
+Isso pode confundir o cliente que consome a API.
+
+---
+
+## 📚 Recursos Recomendados para Você
+
+- Para entender melhor a configuração do banco e uso do Knex.js, recomendo este vídeo:  
   https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s
 
-- Caso queira entender melhor a arquitetura MVC e organização do projeto Node.js para manter o código limpo e escalável:  
+- Para aprofundar em autenticação JWT e segurança, veja este vídeo feito pelos meus criadores, que explica muito bem os conceitos básicos:  
+  https://www.youtube.com/watch?v=Q4LQOfYwujk
+
+- Para entender o uso de bcrypt e JWT na prática:  
+  https://www.youtube.com/watch?v=L04Ln97AwoY
+
+- Para organizar seu projeto com arquitetura MVC em Node.js:  
   https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s
 
 ---
 
-## Resumo rápido dos principais pontos para focar:
+## Resumo dos Pontos para Melhorar 🔍
 
-- ⚠️ Corrigir o uso da variável `senha` no login para `value.senha` na comparação com bcrypt.
-- ⚠️ Validar o formato do ID nas rotas de usuários, especialmente no delete.
-- ⚠️ Simplificar e garantir o fluxo do middleware de autenticação JWT.
-- ⚠️ Considerar tratamento de erros mais robusto nas operações de banco de dados.
-- 🌟 Continuar usando Joi para validações rigorosas dos dados de entrada.
-- 🌟 Explorar a implementação de refresh tokens para melhorar a segurança da sessão.
-- 🌟 Manter a documentação atualizada e clara para facilitar o uso da API.
+- [ ] Padronizar nomes dos campos do token JWT na resposta (`access_token` em vez de `acess_token`).
+
+- [ ] Garantir que o segredo JWT seja obrigatório e não ter fallback inseguro no middleware.
+
+- [ ] Corrigir a formatação da data `dataDeIncorporacao` para usar o valor retornado do banco, não o input.
+
+- [ ] Proteger a rota de exclusão de usuários com middleware de autenticação.
+
+- [ ] Revisar e melhorar a documentação no `INSTRUCTIONS.md`, incluindo exemplos de uso do token JWT e refresh token.
+
+- [ ] Avaliar reorganização das rotas de usuários para uma rota própria, fora de `/auth`.
+
+- [ ] Garantir consistência na validação Joi com `.strict()` para todos os schemas.
+
+- [ ] Documentar claramente a porta do banco e variáveis de ambiente necessárias.
 
 ---
 
-HgrXKPT, você está no caminho certo! 💪 Seu código mostra que você compreende os conceitos principais de autenticação, segurança e organização de projetos Node.js. Com alguns ajustes pontuais, sua API vai ficar ainda mais profissional e robusta.
+## Para Finalizar 💪
 
-Continue praticando, revisando seu código com calma e testando cada funcionalidade. A prática leva à perfeição, e eu acredito muito no seu potencial! 🚀
+Você está num caminho muito bom! A base da sua aplicação está sólida, e você já implementou os principais recursos de autenticação e segurança. Os ajustes que sugeri vão ajudar a deixar seu código mais seguro, consistente e profissional. Continue praticando e refinando essas boas práticas!
 
-Se precisar de ajuda para entender os vídeos ou qualquer ponto do código, estou aqui para ajudar. Bons códigos! 👨‍💻👩‍💻✨
+Se precisar, volte a estudar os vídeos recomendados e dê uma olhada especial na documentação oficial do Knex.js e do JWT.
 
-Abraços do seu Code Buddy! 🤖💙
+Conte comigo para o que precisar, estamos juntos nessa jornada! 🚀✨
+
+Um abraço,  
+Seu Code Buddy 🤖💻
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
