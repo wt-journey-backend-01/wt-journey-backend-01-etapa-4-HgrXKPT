@@ -10,7 +10,7 @@ const swaggerSpec = require('./docs/swagger');
 const casosRoute = require('./routes/casosRoutes')
 const agentesRoute = require('./routes/agentesRoutes')
 const authRoute = require('./routes/authRoutes');
-const authMiddleware = require('./middleware/authMiddleware');
+const authMiddleware = require('./middlewares/authMiddleware');
 
 
 require('dotenv').config();

@@ -6,7 +6,11 @@ const routes = express.Router();
 
 routes.post('/login', authController.login);
 
-routes.post('/signup', authController.signup);
+routes.post('/register', authController.register);
+
+routes.post('/logout', authController.register);
+
+routes.delete('/delete/:id', authController.deleteUser);
 
 
 module.exports = routes;

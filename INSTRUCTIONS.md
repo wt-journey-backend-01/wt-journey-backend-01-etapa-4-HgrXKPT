@@ -16,7 +16,15 @@ Aplique as migrations que já estão configuradas com o comando: npx knex migrat
 
 Faça o mesmo para as seeds já criadas:  npx knex seed:run
 
+## Como JWT funciona?
+
+
+
+
 ## Pronto, Código rodando 👌
+
+
+
 
 ## 🚨 IMPORANTE!!!!
 Levei em consideração que tenha clonado o repositorio e tem todos arquivos já configurados.

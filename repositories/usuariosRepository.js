@@ -16,12 +16,14 @@ async function findUserById(id) {
 
 async function insertUser(userData){
     const query = db('usuarios');
-    return await query.insert(userData).returning('*');
+    const [user] = await query.insert(userData).returning('*');
+    return user
 }
 
 async function updatedUser(id,userData) {
     const query = db('usuarios');
-    return await query.where({ id }).update(userData).returning('*');
+    const [user] = query.where({ id }).update(userData).returning('*');
+    return user
 }
 
 async function deleteUser(id) {
