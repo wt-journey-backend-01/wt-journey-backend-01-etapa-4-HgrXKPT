@@ -10,9 +10,8 @@ function authMiddleware(req, res, next) {
 
         const tokenHeader = req.headers.authorization;
 
-         if (!tokenHeader) {
-            return res.status(401).json({ error: 'Token de acesso não fornecido' });
-
+         if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Formato de token inválido' });
         }
 
         const token = tokenHeader && tokenHeader.split(' ')[1];

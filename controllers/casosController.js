@@ -49,7 +49,14 @@ async function getCasoById(req, res) {
 
 async function getAgenteAssociateToCase(req, res) {
   try{
+
     const { caso_id } = req.params;
+
+  const id = Number(caso_id);
+  if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+    }
+
     const caso = await casosRepository.findCaseById(caso_id);
 
     if (!caso) {
@@ -126,6 +133,13 @@ async function updateCase(req, res) {
 
       const { caso_id } = req.params;
 
+     
+
+  const id = Number(caso_id);
+  if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+    }
+
   const { error, value } = updateSchema.validate(req.body);
 
   if (error) {
@@ -182,6 +196,10 @@ async function  partialUpdateCase(req, res) {
   try{
       const { caso_id } = req.params;
 
+  const id = Number(caso_id);
+  if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+    }
   const {error, value} = updateSchema.validate(req.body);
 
    if (error) {
@@ -243,6 +261,11 @@ async function  partialUpdateCase(req, res) {
 async function deleteCase(req, res) {
 
   const { caso_id } = req.params;
+
+  const id = Number(caso_id);
+  if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+    }
  
 
   const removed = await casosRepository.deleteCase(caso_id);

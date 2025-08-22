@@ -4,7 +4,6 @@ const db = require('../db/db');
 
 async function findUserByEmail(email){
     const query = db('usuarios');
-
     return await query.where({ email }).first();
 }
 

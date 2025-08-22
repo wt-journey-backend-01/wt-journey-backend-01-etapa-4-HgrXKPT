@@ -4,7 +4,8 @@ const Joi = require("joi");
 
 async function findAll(req, res) {
 
-  const filters =  { cargo, sort } = req.query;
+  const { cargo, sort } = req.query;
+  const filters = { cargo, sort };
   const agentes = await agentesRepository.findAll(filters);
 
   res.status(200).json(agentes);
@@ -88,6 +89,16 @@ async function updateAgent(req, res) {
     cargo: Joi.string().trim().min(1).required(),
   });
     const { id } = req.params;
+
+     const idNum = Number(id);
+
+    if (!Number.isInteger(idNum)) {
+      return res.status(400).json({
+        status: 400,
+        message: "ID inválido: deve ser um número inteiro",
+      });
+    }
+
     
      const existingAgent = await agentesRepository.findAgentById(id);
     if(!existingAgent) {
@@ -189,6 +200,15 @@ async function partialUpdate(req, res) {
 async function deleteAgent(req, res) {
 
     const { id } = req.params;
+    
+     const idNum = Number(id);
+
+    if (!Number.isInteger(idNum)) {
+      return res.status(400).json({
+        status: 400,
+        message: "ID inválido: deve ser um número inteiro",
+      });
+    }
 
 
 

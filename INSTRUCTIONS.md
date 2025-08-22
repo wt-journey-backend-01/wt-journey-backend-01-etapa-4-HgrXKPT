@@ -18,7 +18,17 @@ Faça o mesmo para as seeds já criadas:  npx knex seed:run
 
 ## Passo a Passo para registro de usuario
 
-Exemplo de payload
+## 🔐 Fluxo de Autenticação
+    REGISTRO → Crie uma conta de usuário
+
+    LOGIN → Obtenha seu token JWT
+
+    ACESSO → Use o token em rotas protegidas
+
+    LOGOUT → Invalide o token (client-side)
+
+
+Exemplo de payload registro
 ´´´
 {
     "nome": "Higor",
@@ -28,15 +38,45 @@ Exemplo de payload
 
 ´´´
 
-Use esse payload diretamente no Postman na rota Post no seguinte caminho: http://localhost:3000/auth/register
+Requisitos da Senha:
+Mínimo 8 caracteres
 
-como usuario criado vá até a rota de login: http://localhost:3000/auth/login e faça o login para ter acesso ao seu acessToken
+Pelo menos 1 letra maiúscula
 
-após pegar o acessToken você vai nas rotas protegidas(Casos e Agentes) e na aba "Authorization" vai em auth type e coloca "Bearer token",
-ai é só colar o token gerado que vai poder ter acesso a API com segurança.
+Pelo menos 1 letra minúscula
+
+Pelo menos 1 número
+
+Pelo menos 1 caractere especial (!@#$%^&*)
 
 
+Exemplo payload Login
 
+´´´
+{
+    "email": "higor@gmail.com",
+    "senha": "123Webtech@"
+}
+
+´´´
+
+Logout:
+
+Feito inteiramente pelo client-side
+
+
+## 🛡️ Como Usar o Token JWT
+
+No Postman:
+Abra a requisição para uma rota protegida
+
+Vá para a aba "Authorization"
+
+Selecione "Bearer Token" no Type
+
+Cole seu token no campo Token
+
+Faça a requisição
 
 
 

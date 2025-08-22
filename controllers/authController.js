@@ -10,12 +10,23 @@ const Joi = require("joi");
 const SECRET = process.env.JWT_SECRET ||  "secret";
 
 async function login(req, res){
-  
+    const loginSchema = Joi.object({
+        email: Joi.string().email().required(),
+        senha: Joi.string().min(8).required()
+    }).strict();
+    ;
     
-    const { email, senha } = req.body;
+    const { error, value } = loginSchema.validate(req.body);
 
+    if(error){
+      return res.status(400).json({
+        status: 400,
+        message: "Dados inválidos",
+        errors: error.details,
+      });
+    }
 
-    const user = await usuariosRepository.findUserByEmail(email);
+    const user = await usuariosRepository.findUserByEmail(value.email);
 
     if (!user) {
         return res.status(404).json({ message: "Usuário não encontrado" });
@@ -39,13 +50,15 @@ async function login(req, res){
 }
 
 async function register(req, res, next){
-
-    const createUserSchema = Joi.object(
+    try{
+        const createUserSchema = Joi.object(
         {
             nome: Joi.string().min(3).max(100).required(),
             email: Joi.string().email().required(),
-            senha: Joi.string().min(8).max(255).required()
-            .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])'))
+            senha: Joi.string().min(8).max(255)
+            .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])'))
+            .message('A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial')
+            .required(),
             
         }
     ).strict();
@@ -80,6 +93,16 @@ async function register(req, res, next){
     });
 
    return res.status(201).json(newUser);
+    }catch (error) {
+        return res.status(500).json({
+            status: 500,
+            message: "Erro ao registrar usuário",
+            errors: {
+                internal: error.message
+            }
+        });
+    }
+    
 }
 
 async function logout(req, res){
@@ -122,7 +145,12 @@ async function deleteUser(req, res){
     
 
     } catch (error) {
-        next(error);
+        return res.status(500).json({
+            message: "Erro interno do servidor ao deletar usuário",
+            errors: {
+                internal: error.message
+            }
+        });
     }
 }
 
