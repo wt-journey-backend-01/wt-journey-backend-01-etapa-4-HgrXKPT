@@ -65,7 +65,7 @@ async function createAgent(agenteData) {
 
     return{
       ...createdAgent,
-      dataDeIncorporacao: new Date(agenteData.dataDeIncorporacao)
+      dataDeIncorporacao: new Date(createdAgent.dataDeIncorporacao)
         .toISOString()
         .split("T")[0],
     } 
@@ -85,7 +85,7 @@ async function updateAgent(id, agenteData) {
 
     const updated = {
       ...updatedAgent,
-      dataDeIncorporacao: new Date(agenteData.dataDeIncorporacao)
+      dataDeIncorporacao: new Date(updatedAgent.dataDeIncorporacao)
         .toISOString()
         .split("T")[0],
     };

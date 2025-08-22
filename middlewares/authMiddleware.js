@@ -1,11 +1,13 @@
 
 const jwt = require('jsonwebtoken');
+const tokenUtils = require('../utils/tokenUtils');
 
 const express = require('express');
 
 
 function authMiddleware(req, res, next) {
     try{
+
         const SECRET = process.env.JWT_SECRET || "secret";
 
         const tokenHeader = req.headers.authorization;
@@ -17,9 +19,7 @@ function authMiddleware(req, res, next) {
         const token =  tokenHeader.split(' ')[1];
 
 
-        const decoded = jwt.verify(token, SECRET);
-      
-
+        const decoded = tokenUtils.verifyAccessToken(token);
         req.user = decoded;
 
         next();

@@ -3,6 +3,8 @@
 
 1- tenha o Docker Desktop
 
+1.1 Nesse projeto utilizo a porta 5434, sendo que a padrão é 5432
+
 2- Use o comando docker-compose up -d(Tenha o arquivo docker-compose configurado)
 
 ---

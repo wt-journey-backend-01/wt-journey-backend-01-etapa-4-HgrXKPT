@@ -14,7 +14,7 @@ async function login(req, res){
         email: Joi.string().email().required(),
         senha: Joi.string().min(8).required()
     }).strict();
-    ;
+    
     
     const { error, value } = loginSchema.validate(req.body);
 
@@ -29,7 +29,7 @@ async function login(req, res){
     const user = await usuariosRepository.findUserByEmail(value.email);
 
     if (!user) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
+        return res.status(400).json({ message: "Usuário não encontrado" });
     }
 
     const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
@@ -44,7 +44,7 @@ async function login(req, res){
     const refreshToken = tokenUtils.generateRefreshToken(user);
 
     return res.status(200).json({
-        acess_token: acessToken,
+        access_token: acessToken,
         refresh_token: refreshToken
         });
 }
