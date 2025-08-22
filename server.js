@@ -10,7 +10,6 @@ const swaggerSpec = require('./docs/swagger');
 const casosRoute = require('./routes/casosRoutes')
 const agentesRoute = require('./routes/agentesRoutes')
 const authRoute = require('./routes/authRoutes');
-const usuariosRoute = require('./routes/UsuariosRoutes')
 const authMiddleware = require('./middlewares/authMiddleware');
 
 
