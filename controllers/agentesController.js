@@ -124,6 +124,15 @@ async function partialUpdate(req, res) {
   try{
     const { id } = req.params;
 
+    const idNum = Number(id);
+
+    if (!Number.isInteger(idNum)) {
+      return res.status(400).json({
+        status: 400,
+        message: "ID inválido: deve ser um número inteiro",
+      });
+    }
+
   if (req.body.id && req.body.id !== id) {
     return res.status(400).json({
       status: 400,
@@ -197,7 +206,7 @@ async function deleteAgent(req, res) {
   const removed = await agentesRepository.deleteAgent(id);
 
   if (!removed) {
-    return res.status(404).json({
+    return res.status(400).json({
       status: 400,
       message: "Agente não deletado",
       errors: {

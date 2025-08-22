@@ -22,6 +22,7 @@ app.use(express.json());
 
 app.use('/docs',  swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/auth', authRoute);
+
 app.use('/casos',authMiddleware , casosRoute);
 app.use('/agentes',authMiddleware ,agentesRoute);
 

@@ -126,11 +126,35 @@ async function deleteUser(req, res){
     }
 }
 
+async function getLoggedUser(req, res) {
+    try {
+        const { id } = req.user;    
+
+        const user = await usuariosRepository.findUserById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        const { senha, ...userWithoutPassword } = user;
+
+        return res.status(200).json({
+            message: "Perfil do usuário",
+            usuario: userWithoutPassword
+        }
+            
+        );
+    } catch (error) {
+        return res.status(500).json({ message: "Erro interno do servidor" });
+    }
+}
+
 
 module.exports = {
     login,
     register,
     logout,
-    deleteUser
+    deleteUser,
+    getLoggedUser
 }
 

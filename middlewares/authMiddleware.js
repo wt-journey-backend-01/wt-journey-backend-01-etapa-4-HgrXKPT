@@ -6,6 +6,8 @@ const express = require('express');
 
 function authMiddleware(req, res, next) {
     try{
+        const SECRET = process.env.JWT_SECRET || "secret";
+
         const tokenHeader = req.headers.authorization;
 
          if (!tokenHeader) {
@@ -19,7 +21,7 @@ function authMiddleware(req, res, next) {
             return res.status(401).json({ error: 'Formato de token inválido' });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, SECRET);
       
 
         req.user = decoded;
