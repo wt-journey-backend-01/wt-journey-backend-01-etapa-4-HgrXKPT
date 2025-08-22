@@ -87,15 +87,13 @@ async function register(req, res, next){
 
         const createUserSchema = Joi.object(
         {
-            nome: Joi.string().min(3).max(100).required(),
-            email: Joi.string().email().required(),
+            nome: Joi.string().min(3).max(100).trim().required(),
+            email: Joi.string().email().trim().required(),
             senha: Joi.string().min(8).max(255)
             .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])'))
             .message('A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial')
             .required(),
-            
-        }
-    ).strict();
+        }).strict();
 
     const { error, value } = createUserSchema.validate(req.body);
 

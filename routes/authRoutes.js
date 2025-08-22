@@ -2,22 +2,22 @@
 const express = require('express');
 const authController = require('../controllers/authController.js');
 const authMiddleware = require('../middlewares/authMiddleware.js');
-const usersRoutes = express.Router();
+const authRoutes = express.Router();
 
 
-usersRoutes.post('/auth/login', authController.login);
+authRoutes.post('/login', authController.login);
 
-usersRoutes.post('/auth/register', authController.register);
+authRoutes.post('/register', authController.register);
 
-usersRoutes.post('/auth/logout', authMiddleware,authController.logout);
+authRoutes.post('/logout', authMiddleware,authController.logout);
 
-usersRoutes.post('/auth/refresh-token', authController.refreshToken);
+authRoutes.post('/refresh-token', authController.refreshToken);
 
-usersRoutes.delete('/:id',authMiddleware , authController.deleteUser);
+authRoutes.delete('/users/:id',authMiddleware , authController.deleteUser);
 
-usersRoutes.get('/usuarios/me',authMiddleware, authController.getLoggedUser);
-
-
+authRoutes.get('/usuarios/me',authMiddleware, authController.getLoggedUser);
 
 
-module.exports = usersRoutes;
+
+
+module.exports = authRoutes;
