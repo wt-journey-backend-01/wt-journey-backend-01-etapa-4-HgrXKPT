@@ -14,11 +14,8 @@ function authMiddleware(req, res, next) {
         return res.status(401).json({ error: 'Formato de token inválido' });
         }
 
-        const token = tokenHeader && tokenHeader.split(' ')[1];
+        const token =  tokenHeader.split(' ')[1];
 
-         if (!token) {
-            return res.status(401).json({ error: 'Formato de token inválido' });
-        }
 
         const decoded = jwt.verify(token, SECRET);
       

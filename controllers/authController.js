@@ -2,12 +2,12 @@
 const usuariosRepository = require("../repositories/usuariosRepository.js");
 const Bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const tokenUtils = require('../utils/tokenUtils');
 
 const Joi = require("joi");
 
 
 
-const SECRET = process.env.JWT_SECRET ||  "secret";
 
 async function login(req, res){
     const loginSchema = Joi.object({
@@ -32,7 +32,7 @@ async function login(req, res){
         return res.status(404).json({ message: "Usuário não encontrado" });
     }
 
-    const isPasswordValid = await Bcrypt.compare(senha, user.senha);
+    const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
 
     
     if (!isPasswordValid) {
@@ -40,13 +40,47 @@ async function login(req, res){
        return res.status(401).json({ message: "Senha inválida" });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, SECRET, {
-        expiresIn: '1h'
-    });
+    const acessToken = tokenUtils.generateAccessToken(user);
+    const refreshToken = tokenUtils.generateRefreshToken(user);
 
     return res.status(200).json({
-        acess_token: token
+        acess_token: acessToken,
+        refresh_token: refreshToken
         });
+}
+
+async function refreshToken(req, res) {
+try{
+    const { refresh_token } = req.body;
+
+    if (!refresh_token) {
+            return res.status(400).json({ 
+                message: "Refresh token é obrigatório" 
+            });
+        }
+    
+         const decoded = tokenUtils.verifyRefreshToken(refresh_token);
+
+         const user = await usuariosRepository.findUserById(decoded.id)
+
+         if (!user) {
+            return res.status(401).json({ 
+                message: "Usuário não encontrado" 
+            });
+        }
+
+        const newAccessToken = tokenUtils.generateAccessToken(user);
+
+        res.status(200).json({
+            access_token: newAccessToken,
+            expires_in: 900
+        });
+} catch (error) {
+    return res.status(401).json({ 
+        message: "Refresh token inválido ou expirado" 
+    });
+    
+}
 }
 
 async function register(req, res, next){
@@ -76,10 +110,10 @@ async function register(req, res, next){
     const existingUser = await usuariosRepository.findUserByEmail(value.email);
 
      if (existingUser) {
-        return res.status(400).json({
+       return res.status(400).json({
         status: 400,
         message: "Email já está em uso",
-        });
+    });
     }
 
     const salt = await Bcrypt.genSalt(10);
@@ -129,6 +163,14 @@ async function deleteUser(req, res){
     try {
 
         const {id} = req.params;
+
+        const idNum = Number(id);
+        if (!Number.isInteger(idNum)) {
+            return res.status(400).json({
+                status: 400,
+                message: "ID inválido: deve ser um número inteiro",
+            });
+        }
         
         const user = await usuariosRepository.findUserById(id);
 
@@ -183,6 +225,7 @@ module.exports = {
     register,
     logout,
     deleteUser,
+    refreshToken,
     getLoggedUser
 }
 
