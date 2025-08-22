@@ -1,33 +1,34 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 7 créditos restantes para usar o sistema de feedback AI.
+Você tem 6 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para HgrXKPT:
 
 Nota final: **50.3/100**
 
-# Feedback para HgrXKPT 🚀
+# Feedback para você, HgrXKPT! 🚀
 
-Olá, HgrXKPT! Primeiro, quero parabenizar você pelo esforço e pela entrega até aqui! 🎉 Seu projeto está bem estruturado, e você aplicou diversos conceitos importantes de autenticação, autorização e organização de código em Node.js com Express e PostgreSQL. Isso já é um baita avanço!
-
----
-
-## 🎯 Pontos Fortes que Merecem Reconhecimento
-
-- **Estrutura de pastas** está muito próxima do esperado, com controllers, repositories, routes e middlewares separados. Isso facilita muito a manutenção e escalabilidade do projeto.
-- Implementação de autenticação com **bcrypt** para hash de senhas e uso de **JWT** para geração de tokens, com middleware para proteção das rotas, está correta e funcionando.
-- Validação das requisições com **Joi** está bem aplicada, garantindo que os dados recebidos estejam no formato esperado.
-- Documentação via Swagger está configurada e integrada ao projeto.
-- Você conseguiu implementar endpoints básicos de usuários, login, logout, e exclusão, além das operações para agentes e casos, o que mostra um bom domínio da arquitetura MVC.
-- Bônus legais foram entregues, como o filtro e busca de agentes e casos, além do endpoint para buscar o agente associado a um caso, o que demonstra iniciativa em ir além do básico.
+Olá, HgrXKPT! Antes de mais nada, parabéns pelo esforço e dedicação no seu projeto! 👏 É muito legal ver que você conseguiu implementar várias funcionalidades importantes, especialmente a autenticação com JWT, o hashing das senhas usando bcrypt, e a proteção das rotas com middleware. Isso já mostra um bom entendimento dos conceitos essenciais para segurança em APIs Node.js. Além disso, você estruturou seu projeto seguindo o padrão MVC, com controllers, repositories, middlewares e rotas bem organizados — isso facilita muito a manutenção e escalabilidade do código! 🎯
 
 ---
 
-## 🕵️ Onde o Código Precisa de Atenção e Como Melhorar
+## 🎉 Pontos Fortes que Merecem Destaque
 
-### 1. Tratamento de e-mail duplicado no registro de usuário (Erro 400 esperado)
+- **Autenticação e segurança:** Seu `authController.js` está bem estruturado, com validação de dados via Joi, hashing de senha com bcrypt e geração de JWT com tempo de expiração. O middleware `authMiddleware.js` está corretamente interceptando as requisições e validando o token.  
+- **Proteção das rotas:** Você aplicou o middleware de autenticação nas rotas de `/agentes` e `/casos` no arquivo `server.js`, garantindo que só usuários autenticados possam acessar esses recursos.  
+- **Validação de dados:** Você usou o Joi para validar os payloads de criação e atualização tanto de agentes quanto de casos, o que é excelente para evitar dados inválidos no banco.  
+- **Estrutura do projeto:** Está muito próxima da estrutura esperada, com as pastas e arquivos organizados conforme o padrão solicitado. Isso é fundamental para um código profissional.  
+- **Documentação:** O arquivo `INSTRUCTIONS.md` está presente e traz orientações para uso básico da API, o que é ótimo para quem for consumir sua API.  
 
-No seu `authController.js`, no método `register`, você faz a validação do e-mail já existente com:
+Além disso, você conseguiu implementar alguns bônus, como o endpoint `/usuarios/me` que retorna os dados do usuário autenticado, mostrando que você foi além do básico! 🌟
+
+---
+
+## 🚨 Pontos de Atenção e Oportunidades de Aprendizado
+
+### 1. **Erro ao tentar criar usuário com e-mail já em uso (status 400)**
+
+No seu `authController.js`, a validação para verificar se o e-mail já está em uso está correta:
 
 ```js
 const existingUser = await usuariosRepository.findUserByEmail(value.email);
@@ -40,203 +41,255 @@ if (existingUser) {
 }
 ```
 
-Isso está correto, porém percebi que em alguns momentos você retorna o status 404 para usuário não encontrado no login:
+No entanto, percebi que no teste, a API deveria retornar erro 400 quando o e-mail já existe, mas aparentemente isso não está acontecendo. Isso pode ocorrer se a verificação não estiver sendo feita antes de tentar inserir o usuário, ou se o banco de dados não está respeitando a restrição de unicidade.
+
+**O que verificar:**
+
+- Confirme se a migration que cria a tabela `usuarios` está criando a coluna `email` com a restrição `unique()`. No seu arquivo de migration `20250802232701_solution_migrations.js`, você fez isso corretamente:
 
 ```js
-if (!user) {
-    return res.status(404).json({ message: "Usuário não encontrado" });
+table.string('email', 100).notNullable().unique();
+```
+
+- Verifique se o método `findUserByEmail` no `usuariosRepository.js` está funcionando corretamente e retornando `null` quando o usuário não existe. Seu código parece correto:
+
+```js
+async function findUserByEmail(email){
+    const query = db('usuarios');
+    return await query.where({ email }).first();
 }
 ```
 
-Para manter coerência, seria interessante padronizar os status e mensagens, já que o 400 é usado para dados inválidos e o 404 para recursos não encontrados. No login, o 404 faz sentido, mas no registro o 400 para e-mail duplicado está ótimo.
+- Certifique-se que o payload enviado no registro está correto e que a validação Joi está funcionando para impedir campos extras ou em formatos errados.
 
-**Possível melhoria:** Certifique-se de que o cliente receba uma mensagem clara e consistente para e-mails duplicados. Além disso, no seu schema Joi para senha, você está cobrindo os requisitos mínimos (minúscula, maiúscula, número, caractere especial), o que é excelente!
+**Dica:** Pode ser que ao tentar criar um usuário com e-mail duplicado, o banco esteja lançando um erro, mas você não está tratando esse erro no controller. Recomendo que você envolva a inserção em um bloco `try-catch` para capturar erros de violação de unicidade e retornar um erro 400 com mensagem adequada.
 
----
-
-### 2. Validação de ID inválido para agentes e casos
-
-Notei que nos controllers de agentes e casos você faz a conversão do ID para número e valida se é inteiro:
+Exemplo de tratamento:
 
 ```js
-const idNum = Number(id);
-
-if (!Number.isInteger(idNum)) {
-  return res.status(400).json({
-    status: 400,
-    message: "ID inválido: deve ser um número inteiro",
+try {
+  const newUser = await usuariosRepository.insertUser({
+    nome: value.nome,
+    email: value.email,
+    senha: hashedPassword
   });
+  return res.status(201).json(newUser);
+} catch (error) {
+  if (error.code === '23505') { // Código do Postgres para violação de chave única
+    return res.status(400).json({
+      status: 400,
+      message: 'Email já está em uso',
+    });
+  }
+  next(error);
 }
 ```
-
-Porém, em alguns pontos você retorna status 404 ao invés de 400 quando o ID está em formato inválido. Por exemplo, no `getCasoById`:
-
-```js
-if (!Number.isInteger(id)) {
-  return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
-}
-```
-
-**Recomendo usar o status 400 para IDs inválidos**, pois o cliente está enviando um dado mal formatado, o que é um erro de requisição (Bad Request), e o 404 deve ser reservado para casos em que o ID é válido, mas o recurso não existe.
 
 ---
 
-### 3. Atualização parcial e completa de agentes
+### 2. **Validação da senha no registro**
 
-No `agentesController.js`, os métodos `updateAgent` (PUT) e `partialUpdate` (PATCH) estão bem estruturados, mas percebi que no PUT você não está validando o formato do ID (se é número inteiro) antes de buscar o agente:
-
-```js
-const { id } = req.params;
-
-const existingAgent = await agentesRepository.findAgentById(id);
-if(!existingAgent) {
-  return res.status(404).json();
-}
-```
-
-**Sugestão:** Antes de chamar o repositório, faça a validação do ID para garantir que ele seja um número inteiro, retornando status 400 caso contrário. Isso evita chamadas desnecessárias ao banco e melhora a robustez da API.
-
----
-
-### 4. Deleção de agentes e casos: status code e mensagens
-
-No método `deleteAgent` do controller, você retorna:
+Você aplicou uma regex para validar a senha no Joi:
 
 ```js
-if (!removed) {
-  return res.status(404).json({
-    status: 400,
-    message: "Agente não deletado",
-    errors: {
-      id: "O agente não foi deletado",
-    },
-  });
-}
+senha: Joi.string().min(8).max(255).required()
+  .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])'))
 ```
 
-Aqui, há uma inconsistência: o status HTTP está como 404, mas você coloca `status: 400` no JSON. Além disso, o status 404 é mais adequado para recurso não encontrado, e 400 para requisição inválida.
+Isso é ótimo! Mas note que, para garantir que a senha tenha ao menos uma letra minúscula, uma maiúscula, um número e um caractere especial, é importante que a regex cubra todos esses casos.
 
-**Recomendo corrigir para algo assim:**
-
-```js
-if (!removed) {
-  return res.status(400).json({
-    status: 400,
-    message: "Agente não deletado",
-    errors: {
-      id: "O agente não foi deletado",
-    },
-  });
-}
-```
-
-Assim, o status HTTP e o status do corpo da resposta ficam alinhados.
-
----
-
-### 5. Middleware de autenticação: tratamento do segredo JWT
-
-No seu `authMiddleware.js`, você faz:
-
-```js
-const decoded = jwt.verify(token, process.env.JWT_SECRET);
-```
-
-Porém, no `authController.js` você define o segredo JWT com fallback:
-
-```js
-const SECRET = process.env.JWT_SECRET ||  "secret";
-```
-
-Para evitar problemas de inconsistência, recomendo que o middleware também utilize a mesma variável `SECRET` com fallback, para garantir que o token seja verificado com o mesmo segredo que foi usado para criá-lo.
+Se você quiser, pode deixar a regex mais explícita e adicionar uma mensagem customizada para facilitar o entendimento do erro pelo usuário.
 
 Exemplo:
 
 ```js
-const SECRET = process.env.JWT_SECRET || "secret";
+senha: Joi.string()
+  .min(8)
+  .max(255)
+  .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])'))
+  .message('A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial')
+  .required(),
+```
+
+---
+
+### 3. **Endpoints de agentes e casos: tratamento de IDs inválidos**
+
+Em alguns controllers, a validação do ID para verificar se é um número inteiro está sendo feita com:
+
+```js
+const idNum = Number(id);
+if (!Number.isInteger(idNum)) {
+  return res.status(400).json({ ... });
+}
+```
+
+Isso é correto, porém em alguns lugares, como no método `deleteAgent`, você não está validando o ID antes de tentar buscar o agente, o que pode gerar erros não tratados.
+
+Recomendo que você padronize essa validação em todas as rotas que recebem parâmetros de ID, para garantir que IDs inválidos sejam rejeitados com status 400 antes de qualquer consulta ao banco.
+
+---
+
+### 4. **Middleware de autenticação: verificação do token**
+
+Seu middleware `authMiddleware.js` está muito bom, tratando a ausência do token e token inválido:
+
+```js
+const tokenHeader = req.headers.authorization;
+
+if (!tokenHeader) {
+  return res.status(401).json({ error: 'Token de acesso não fornecido' });
+}
+
+const token = tokenHeader.split(' ')[1];
+
+if (!token) {
+  return res.status(401).json({ error: 'Formato de token inválido' });
+}
 
 const decoded = jwt.verify(token, SECRET);
+req.user = decoded;
+next();
+```
+
+Aqui, uma sugestão para deixar o código mais robusto é garantir que o header `Authorization` esteja no formato correto antes de fazer o split, para evitar erros inesperados.
+
+Exemplo:
+
+```js
+if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {
+  return res.status(401).json({ error: 'Formato de token inválido' });
+}
 ```
 
 ---
 
-### 6. Endpoint `/usuarios/me` não implementado
+### 5. **Documentação no INSTRUCTIONS.md**
 
-Um dos bônus sugeridos era implementar o endpoint `/usuarios/me` para retornar os dados do usuário autenticado. Percebi que ele não está presente no seu código.
+Seu arquivo `INSTRUCTIONS.md` está funcional, mas pode ser melhorado para incluir exemplos claros de como passar o token JWT no header Authorization, por exemplo:
 
-Esse endpoint é importante para que o cliente possa obter informações do usuário logado sem precisar passar o ID manualmente.
-
-**Sugestão rápida para implementar:**
-
-- Crie uma rota `GET /usuarios/me` protegida pelo middleware de autenticação.
-- No controller, retorne os dados do usuário baseado no `req.user.id` que o middleware adiciona.
-
----
-
-### 7. Documentação no INSTRUCTIONS.md poderia ser mais detalhada
-
-Seu arquivo INSTRUCTIONS.md está funcional, mas poderia conter exemplos mais claros e detalhados de uso dos endpoints de autenticação, especialmente mostrando o formato do header `Authorization` com o token JWT:
-
-```markdown
-### Como usar o token JWT nas rotas protegidas
-
-Após fazer login, você receberá um token JWT. Para acessar rotas protegidas, envie o header:
-
-Authorization: Bearer <seu_token_aqui>
-
-Exemplo no Postman:
-
-- Vá na aba "Authorization"
-- Selecione "Bearer Token"
-- Cole o token recebido no campo
+```
+Authorization: Bearer <seu_token_jwt_aqui>
 ```
 
-Isso ajuda muito quem for consumir sua API.
+Além disso, seria interessante incluir um resumo do fluxo de autenticação, para ajudar quem for usar sua API a entender o passo a passo do registro, login, uso do token e logout.
 
 ---
 
-## 🌟 Bônus que você conquistou
+### 6. **Filtros e ordenação na listagem de agentes**
 
-- Implementou filtros avançados para agentes e casos, incluindo busca por status, agente responsável e palavras-chave.
-- Criou endpoint para obter agente associado a um caso.
-- Aplicou ordenação por data de incorporação nos agentes.
-- Boas mensagens de erro personalizadas para diferentes cenários.
-- Tratamento correto do logout, mesmo sabendo que JWT é stateless.
+Você implementou filtros por cargo e ordenação por data de incorporação no `agentesRepository.js`, o que é ótimo! Porém, no controller `findAll` (em `agentesController.js`), você está extraindo os filtros assim:
 
-Parabéns por esses extras! Eles enriquecem muito a qualidade da aplicação. 👏
+```js
+const filters =  { cargo, sort } = req.query;
+```
 
----
+Essa linha pode causar confusão ou erro, pois você está fazendo uma atribuição e uma desestruturação ao mesmo tempo. O ideal é separar:
 
-## 📚 Recursos recomendados para você
+```js
+const { cargo, sort } = req.query;
+const filters = { cargo, sort };
+```
 
-- Para aprofundar em autenticação e JWT, recomendo fortemente este vídeo, feito pelos meus criadores, que explica conceitos básicos e avançados de segurança com JWT e bcrypt:  
-  https://www.youtube.com/watch?v=Q4LQOfYwujk  
-- Para entender melhor o uso do JWT na prática, especialmente geração e verificação de tokens, este vídeo é excelente:  
-  https://www.youtube.com/watch?v=keS0JWOypIU  
-- Para dominar o Knex, criação de migrations e seeds, e manipulação de banco de dados PostgreSQL com Node.js, confira:  
-  https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s  
-- Para organizar seu projeto com arquitetura MVC e boas práticas, este vídeo ajuda bastante:  
-  https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s  
+Assim, o código fica mais claro e evita possíveis bugs.
 
 ---
 
-## 📝 Resumo dos pontos para focar e melhorar
+### 7. **Tratamento de erros no deleteUser**
 
-- Padronizar status HTTP para erros de validação (usar 400 para dados inválidos, 404 para recursos não encontrados).
-- Validar IDs recebidos (path params) no formato correto antes de consultar o banco.
-- Corrigir inconsistência no status code retornado na deleção de agentes e casos.
-- Garantir que o segredo JWT seja usado de forma consistente tanto na geração quanto na verificação dos tokens.
-- Implementar o endpoint `/usuarios/me` para retornar dados do usuário autenticado.
-- Enriquecer a documentação no INSTRUCTIONS.md com exemplos claros de uso do token JWT nas rotas protegidas.
-- Revisar mensagens de erro para garantir clareza e uniformidade.
+No método `deleteUser` do seu `authController.js`, você está usando `next(error)` no catch, mas não recebeu o parâmetro `next` na função:
+
+```js
+async function deleteUser(req, res){
+  try {
+    // ...
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+Isso vai gerar erro porque `next` não está definido. Para corrigir, adicione o parâmetro `next` na assinatura da função:
+
+```js
+async function deleteUser(req, res, next){
+  try {
+    // ...
+  } catch (error) {
+    next(error);
+  }
+}
+```
+
+Ou, se preferir, trate o erro diretamente no catch com um `res.status(500).json({ message: error.message })`.
 
 ---
 
-Você está no caminho certo, HgrXKPT! Seu código está organizado e funcional na maior parte, e com esses ajustes vai ficar ainda mais robusto, profissional e pronto para produção. Continue assim, com essa dedicação e vontade de aprender! 🚀
+### 8. **Boas práticas: evitar repetir código de conversão de datas**
 
-Se precisar de ajuda para implementar alguma dessas melhorias, é só chamar! Estou aqui para te ajudar a evoluir cada vez mais. 😉
+Em vários lugares do `agentesRepository.js`, você converte datas para string no formato ISO com `.toISOString().split("T")[0]`. Para deixar o código mais limpo e evitar repetição, você pode criar uma função utilitária para isso, por exemplo, em `utils/dateUtils.js`:
 
-Um grande abraço e sucesso! 👊✨
+```js
+function formatDateToISO(date) {
+  return new Date(date).toISOString().split('T')[0];
+}
+
+module.exports = { formatDateToISO };
+```
+
+E usar assim:
+
+```js
+const { formatDateToISO } = require('../utils/dateUtils');
+
+...
+
+dataDeIncorporacao: formatDateToISO(agente.dataDeIncorporacao),
+```
+
+---
+
+## 📚 Recursos que Recomendo para Você Aprofundar
+
+- Para entender melhor a configuração do banco com Docker e Knex, veja esse vídeo:  
+  https://www.youtube.com/watch?v=uEABDBQV-Ek&t=1s
+
+- Para dominar o uso do Knex Query Builder e evitar erros em queries:  
+  https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s
+
+- Para aprofundar em autenticação, JWT e bcrypt, recomendo fortemente este vídeo feito pelos meus criadores, que explica os conceitos básicos e práticos:  
+  https://www.youtube.com/watch?v=Q4LQOfYwujk
+
+- Para entender melhor o uso prático de JWT na autenticação:  
+  https://www.youtube.com/watch?v=keS0JWOypIU
+
+- Para aprender mais sobre o uso combinado de JWT e bcrypt:  
+  https://www.youtube.com/watch?v=L04Ln97AwoY
+
+- Para entender a arquitetura MVC e organização de projetos Node.js:  
+  https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s
+
+---
+
+## 📝 Resumo dos Principais Pontos para Melhorar
+
+- Trate erros de violação de unicidade (e-mail duplicado) no registro de usuário para garantir retorno 400.  
+- Padronize validação de IDs em todas as rotas para rejeitar IDs inválidos com 400.  
+- Melhore a validação do header Authorization no middleware para evitar erros inesperados.  
+- Ajuste a extração dos filtros no controller de agentes para evitar atribuições confusas.  
+- Corrija o uso do `next` no método `deleteUser` do `authController.js`.  
+- Enriqueça o arquivo `INSTRUCTIONS.md` com exemplos claros de uso do token JWT e fluxo de autenticação.  
+- Considere criar funções utilitárias para formatação de datas e outras operações repetitivas.  
+
+---
+
+## Finalizando...
+
+Você está no caminho certo, HgrXKPT! Seu código já mostra uma boa base para uma API segura, organizada e funcional. Com os ajustes que sugeri, você vai conseguir melhorar a robustez e a experiência do usuário da sua API, além de garantir que todos os erros sejam tratados adequadamente. Continue praticando, explorando os recursos que recomendei e se desafiando a implementar cada vez mais funcionalidades com qualidade. Estou aqui torcendo pelo seu sucesso! 🚀💪
+
+Se precisar de ajuda para entender algum ponto específico, só chamar! 😉
+
+Um abraço e bons códigos! 👨‍💻👩‍💻
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
