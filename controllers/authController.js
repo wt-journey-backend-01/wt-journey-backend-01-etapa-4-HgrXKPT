@@ -32,14 +32,14 @@ async function login(req, res){
     const user = await usuariosRepository.findUserByEmail(value.email);
 
     if (!user) {
-        return res.status(400).json({ message: "Usuário não encontrado" });
+        return res.status(401).json({ 
+        message: "Usuário não encontrado"
+    });
     }
 
     console.log(await Bcrypt.hash(value.senha, 10)); // DEBUG
 
     const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
-
-    
     if (!isPasswordValid) {
 
        return res.status(401).json({ message: "Senha inválida" });
@@ -92,10 +92,11 @@ async function register(req, res, next){
 
         const createUserSchema = Joi.object(
         {
-            nome: Joi.string().min(3).max(100).trim().required(),
+            nome: Joi.string().min(3).max(100).trim()
+            .required(),
             email: Joi.string().email().trim().required(),
             senha: Joi.string().min(8).max(255)
-            .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/)
+            .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*.,?;:]).{8,}$/)
             .messages({
                     'string.pattern.base': 'A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial (!@#$%^&*)',
                     'string.min': 'A senha deve ter no mínimo 8 caracteres',
@@ -109,15 +110,17 @@ async function register(req, res, next){
     if(error){
       return res.status(400).json({
         status: 400,
-        message: "Dados inválidos",
+        message: "Dados de criação inválidos",
         errors: error.details,
       });
     }
     
     const email = value.email.toLowerCase();
+
     console.log('Email convertido:', email);
 
     const existingUser = await usuariosRepository.findUserByEmail(email);
+
         console.log('Existing user:', existingUser); // DEBUG
     console.log('Tipo do existingUser:', typeof existingUser); // DEBUG
 
@@ -138,7 +141,9 @@ async function register(req, res, next){
         senha: hashedPassword
     });
 
-   return res.status(201).json(newUser);
+    const { senha, ...userWithoutPassword } = newUser;
+
+   return res.status(201).json(userWithoutPassword);
     
     
 }

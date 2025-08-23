@@ -10,7 +10,7 @@ function authMiddleware(req, res, next) {
 
         const tokenHeader = req.headers.authorization;
 
-         if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {
+         if (!tokenHeader) {
         return res.status(401).json({ error: 'Formato de token inválido' });
         }
 
