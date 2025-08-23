@@ -45,11 +45,11 @@ async function login(req, res){
        return res.status(401).json({ message: "Senha inválida" });
     }
 
-    const acessToken = tokenUtils.generateAccessToken(user);
+    const accessToken = tokenUtils.generateAccessToken(user);
     const refreshToken = tokenUtils.generateRefreshToken(user);
 
     return res.status(200).json({
-        acess_token: acessToken,
+        access_token: accessToken,
         refresh_token: refreshToken
         });
 }
