@@ -90,8 +90,12 @@ async function register(req, res, next){
             nome: Joi.string().min(3).max(100).trim().required(),
             email: Joi.string().email().trim().required(),
             senha: Joi.string().min(8).max(255)
-            .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])'))
-            .message('A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial')
+            .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
+            .messages({
+                    'string.pattern.base': 'A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial (!@#$%^&*)',
+                    'string.min': 'A senha deve ter no mínimo 8 caracteres',
+                    'string.max': 'A senha deve ter no máximo 255 caracteres'
+            })
             .required(),
         }).strict();
 
@@ -104,10 +108,15 @@ async function register(req, res, next){
         errors: error.details,
       });
     }
+    
+    const email = value.email.toLowerCase();
+    console.log('Email convertido:', email);
 
-    const existingUser = await usuariosRepository.findUserByEmail(value.email);
+    const existingUser = await usuariosRepository.findUserByEmail(email);
+        console.log('Existing user:', existingUser); // DEBUG
+    console.log('Tipo do existingUser:', typeof existingUser); // DEBUG
 
-     if (existingUser) {
+     if (existingUser && existingUser.id) {
        return res.status(400).json({
         status: 400,
         message: "Email já está em uso",
@@ -120,7 +129,7 @@ async function register(req, res, next){
 
     const newUser = await usuariosRepository.insertUser({
         nome: value.nome,
-        email: value.email,
+        email: email,
         senha: hashedPassword
     });
 
