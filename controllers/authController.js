@@ -11,7 +11,7 @@ const Joi = require("joi");
 
 async function login(req, res){
     const loginSchema = Joi.object({
-        email: Joi.string().email().required(),
+        nome: Joi.string().required(),
         senha: Joi.string().min(8).required()
     }).strict();
     
@@ -28,7 +28,7 @@ async function login(req, res){
 
     console.log('Email recebido:', value.email); // DEBUG
 
-    const user = await usuariosRepository.findUserByEmail(value.email);
+    const user = await usuariosRepository.findUserByEmail(value.nome);
 
     if (!user) {
         return res.status(400).json({ message: "Usuário não encontrado" });
