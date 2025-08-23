@@ -13,7 +13,7 @@ module.exports = {
     client: 'pg',
     connection: {
       host: '127.0.0.1',
-      port: 5434,
+      port: 5432,
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
@@ -29,8 +29,8 @@ module.exports = {
   ci: {
     client: 'pg',
     connection: {
-      host: 'postgres', // Using the service name as the host
-      port: 5434,
+      host: 'postgres',
+      port: 5432,
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
