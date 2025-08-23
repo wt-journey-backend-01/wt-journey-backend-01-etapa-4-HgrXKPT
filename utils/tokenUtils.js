@@ -8,7 +8,7 @@ function generateAccessToken(user) {
     return jwt.sign(
         { 
             id: user.id, 
-            email: user.email,
+            email: user.nome,
             type: 'access'
         }, 
         ACCESS_TOKEN_SECRET, 
