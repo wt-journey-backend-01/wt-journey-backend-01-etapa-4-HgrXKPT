@@ -2,7 +2,18 @@
 const db = require('../db/db');
 
 
-async function findUserByEmail(nome){
+async function findUserByEmail(email){
+    try{
+        const query = db('usuarios');
+    return await query.whereRaw('LOWER(email) = ?', email.toLowerCase()).first();
+
+    }catch (error) {
+        throw new Error('Erro ao buscar usuario pelo email: ' + error.message);
+    }
+    
+}
+
+async function findUserByName(nome){
     try{
         const query = db('usuarios');
     return await query.where({nome}).first();
@@ -10,7 +21,6 @@ async function findUserByEmail(nome){
     }catch (error) {
         throw new Error('Erro ao buscar usuario pelo nome: ' + error.message);
     }
-    
 }
 
 
@@ -54,5 +64,6 @@ module.exports = {
     findUserByEmail,
     insertUser,
     findUserById,
-    deleteUser
+    deleteUser,
+    findUserByName
 }

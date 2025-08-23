@@ -26,9 +26,9 @@ async function login(req, res){
       });
     }
 
-    console.log('Email recebido:', value.email); // DEBUG
+    console.log('Nome Recebido:', value.email); // DEBUG
 
-    const user = await usuariosRepository.findUserByEmail(value.nome);
+    const user = await usuariosRepository.findUserByName(value.nome);
 
     if (!user) {
         return res.status(400).json({ message: "Usuário não encontrado" });
