@@ -14,9 +14,9 @@ module.exports = {
     connection: {
       host: '127.0.0.1',
       port: 5434,
-      user: process.env.POSTGRES_USER || 'postgres',
-      password: process.env.POSTGRES_PASSWORD || 'postgres',
-      database: process.env.POSTGRES_DB || 'police_db',
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
       ssl: false
     },
     migrations: {
@@ -31,9 +31,9 @@ module.exports = {
     connection: {
       host: 'postgres', // Using the service name as the host
       port: 5434,
-      user: process.env.POSTGRES_USER || 'postgres',
-      password: process.env.POSTGRES_PASSWORD || 'postgres',
-      database: process.env.POSTGRES_DB || 'police_db',
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
     },
     migrations: {
       directory: './db/migrations',
