@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/wt-journey-backend-01/wt-journey-backend-01-etapa-3-HgrXKPT#readme",
   "dependencies": {
+    "@joi/date": "^2.1.1",
     "bcrypt": "^6.0.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.1",

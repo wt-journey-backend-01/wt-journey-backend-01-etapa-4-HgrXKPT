@@ -1,6 +1,7 @@
 const agentesRepository = require("../repositories/agentesRepository");
 const { parseISO, isValid, isFuture } = require("date-fns");
-const Joi = require("joi");
+const Joi = require("joi")
+
 
 async function findAll(req, res) {
 
@@ -48,9 +49,12 @@ async function findById(req, res) {
 async function addAgente(req, res) {
   const agentSchema = Joi.object({
     nome: Joi.string().trim().min(1).required(),
-    dataDeIncorporacao: Joi.date().iso().max("now").required(),
+    dataDeIncorporacao: Joi.string()
+        .pattern(/^\d{4}-\d{2}-\d{2}$/)
+        .message('Data deve estar no formato YYYY-MM-DD')
+        .required(),
     cargo: Joi.string().trim().min(1).required(),
-  });
+  }).strict();
   try{
     const {error, value } = agentSchema.validate(req.body);
 
@@ -64,8 +68,6 @@ async function addAgente(req, res) {
 
 
   const agent = await agentesRepository.createAgent(value);
-
-
 
   return res.status(201).json(agent);
 

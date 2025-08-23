@@ -6,11 +6,11 @@ const errorHandler = require(`./utils/errorHandler`);
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./docs/swagger');
 
-
+const authMiddleware = require('./middlewares/authMiddleware');
 const casosRoute = require('./routes/casosRoutes')
 const agentesRoute = require('./routes/agentesRoutes')
 const authRoute = require('./routes/authRoutes');
-const authMiddleware = require('./middlewares/authMiddleware');
+
 
 
 require('dotenv').config();
@@ -22,8 +22,8 @@ app.use(express.json());
 
 app.use('/docs',  swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/auth', authRoute);
-app.use('/casos' , casosRoute);
-app.use('/agentes' ,agentesRoute);
+app.use('/casos',authMiddleware , casosRoute);
+app.use('/agentes',authMiddleware ,agentesRoute);
 
 
 app.use(errorHandler); // Middleware para lidar com erros
