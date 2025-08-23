@@ -14,7 +14,7 @@ async function login(req, res){
     const loginSchema = Joi.object({
         nome: Joi.string().required(),
         senha: Joi.string().min(8).required()
-    });
+    }).strict();
     
     
     const { error, value } = loginSchema.validate(req.body);

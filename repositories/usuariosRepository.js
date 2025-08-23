@@ -16,7 +16,7 @@ async function findUserByEmail(email){
 async function findUserByName(nome){
     try{
         const query = db('usuarios');
-    return await query.where({nome}).first();
+        return await query.where({nome}).first();
 
     }catch (error) {
         throw new Error('Erro ao buscar usuario pelo nome: ' + error.message);
