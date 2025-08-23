@@ -1,39 +1,38 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 1 créditos restantes para usar o sistema de feedback AI.
+Você tem 0 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para HgrXKPT:
 
 Nota final: **50.3/100**
 
-# Feedback para HgrXKPT 🚀
+# Feedback para você, HgrXKPT! 🚀
 
-Olá, HgrXKPT! Primeiro, quero parabenizá-lo pelo esforço e pela organização que você apresentou no seu projeto! 🎉 É muito legal ver que você estruturou seu código com controllers, repositories, rotas e middlewares, seguindo o padrão MVC. Isso é fundamental para construir APIs escaláveis e fáceis de manter.
-
-Além disso, você implementou várias funcionalidades importantes de autenticação com JWT, hashing de senha com bcrypt, e até cuidou do refresh token. Isso mostra que você está avançando muito bem no domínio da segurança em APIs. 👏
+Olá, HgrXKPT! Primeiro, parabéns pelo empenho e dedicação nesse desafio tão importante de segurança e autenticação em Node.js! 👏🎉
 
 ---
 
-## O que está indo muito bem 👍
+## 🎉 Pontos Fortes e Conquistas Bônus
 
-- **Estrutura do projeto:** Seu projeto segue quase que perfeitamente a estrutura esperada, com pastas bem organizadas para controllers, repositories, middlewares, rotas e utils.  
-- **Autenticação:** Você implementou registro, login, logout, refresh token, exclusão de usuários e proteção de rotas com middleware JWT — tudo isso com validação usando Joi, o que é ótimo para garantir dados consistentes.  
-- **Tratamento de erros:** Seu uso do middleware `errorHandler` e respostas com status codes apropriados está bem alinhado com boas práticas.  
-- **Documentação:** Você preparou o arquivo `INSTRUCTIONS.md` com orientações claras para uso da API, incluindo exemplos de payload e uso do token JWT.  
-- **Boas práticas:** Você nunca expõe segredos diretamente no código e usa variáveis de ambiente (`.env`) para o JWT_SECRET, o que é essencial para segurança.
+- Você estruturou muito bem seu projeto, seguindo a arquitetura MVC, separando controllers, repositories, rotas e middlewares. Isso é fundamental para manter o código organizado e escalável.
+- A implementação do JWT para autenticação está presente e funcionando, com geração de access e refresh tokens.
+- O middleware de autenticação está corretamente aplicado nas rotas que precisam de proteção.
+- O fluxo de registro, login, logout e exclusão de usuários está implementado e com validações robustas, inclusive com uso do Joi para validação de payload.
+- A documentação no `INSTRUCTIONS.md` está clara e orienta bem o uso do token JWT.
+- Você conseguiu entregar vários bônus, como o endpoint `/usuarios/me` para retornar dados do usuário autenticado e o refresh token na autenticação. Isso mostra seu esforço para ir além do básico!
 
 ---
 
-## Pontos que precisam de atenção e melhorias 🕵️‍♂️
+## 🚨 Pontos de Atenção e Melhorias Necessárias
 
-### 1. Erro ao tentar criar usuário com email já em uso (status 400)
+### 1. **Erro ao criar usuário com e-mail já em uso (Erro 400 esperado, mas falha na verificação)**
 
-Você tem uma validação para verificar se o email do usuário já está registrado no banco, o que é ótimo:
+No seu `authController.js`, na função `register`, você faz uma verificação para saber se o e-mail já está cadastrado:
 
 ```js
-const existingUser = await usuariosRepository.findUserByEmail(value.email);
+const existingUser = await usuariosRepository.findUserByEmail(email);
 
-if (existingUser) {
+if (existingUser && existingUser.id) {
   return res.status(400).json({
     status: 400,
     message: "Email já está em uso",
@@ -41,181 +40,197 @@ if (existingUser) {
 }
 ```
 
-Porém, o teste indica que esse erro não está sendo retornado corretamente em todos os casos. Isso pode acontecer se:
+**O que pode estar acontecendo?**
 
-- O email estiver sendo comparado de forma case-sensitive e o banco tiver emails com letras maiúsculas/minúsculas diferentes (ex: `User@Email.com` vs `user@email.com`).  
-- Ou se a verificação não estiver sendo feita antes da inserção no banco, permitindo duplicatas e causando erro de banco que não é tratado.
+- Você está convertendo o email para minúsculas (`email = value.email.toLowerCase()`), mas no `usuariosRepository.findUserByEmail(email)` pode estar buscando o email sem converter para lowercase no banco. Se seu banco armazenar e-mails com letras maiúsculas, a busca pode não encontrar o usuário e permitir cadastro duplicado.
+- Além disso, no seu banco a coluna `email` é única (`unique()` na migration), mas se o banco for case-sensitive, isso pode permitir duplicatas com letras maiúsculas/minúsculas diferentes.
 
-**Recomendação:** Para evitar problemas de case sensitivity, normalize o email para minúsculas antes de salvar e na consulta, assim:
+**Como melhorar:**
+
+- Garanta que os e-mails sejam sempre armazenados e buscados em lowercase. Você já faz isso no controller, mas confirme que o banco também armazena assim.
+- No repositório, ao buscar por email, faça a busca com `LOWER(email)` para garantir que a busca ignore case. Exemplo:
 
 ```js
-const emailNormalized = value.email.toLowerCase();
-const existingUser = await usuariosRepository.findUserByEmail(emailNormalized);
-
-if (existingUser) {
-  return res.status(400).json({
-    status: 400,
-    message: "Email já está em uso",
-  });
+async function findUserByEmail(email) {
+  const user = await db('usuarios')
+    .whereRaw('LOWER(email) = ?', email.toLowerCase())
+    .first();
+  return user;
 }
-
-// Na hora de inserir:
-const newUser = await usuariosRepository.insertUser({
-  nome: value.nome,
-  email: emailNormalized,
-  senha: hashedPassword
-});
 ```
 
-Esse cuidado evita que dois emails iguais em diferentes casos sejam tratados como diferentes.
+Assim, você evita duplicidade por causa de case diferente.
 
 ---
 
-### 2. Validação da senha no registro
+### 2. **Validação da senha no registro**
 
-Você fez uma validação muito boa para a senha usando regex no Joi, garantindo letras maiúsculas, minúsculas, números e caracteres especiais:
+Você fez uma validação excelente com Joi para garantir que a senha tenha:
+
+- Mínimo 8 caracteres
+- Pelo menos uma letra maiúscula
+- Pelo menos uma letra minúscula
+- Pelo menos um número
+- Pelo menos um caractere especial (!@#$%^&*)
+
+Porém, no seu schema:
 
 ```js
 senha: Joi.string().min(8).max(255)
-  .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])'))
-  .message('A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial')
+  .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
+  .messages({
+    'string.pattern.base': 'A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial (!@#$%^&*)',
+    'string.min': 'A senha deve ter no mínimo 8 caracteres',
+    'string.max': 'A senha deve ter no máximo 255 caracteres'
+  })
   .required(),
 ```
 
-Porém, o teste indica que o campo senha pode estar aceitando valores inválidos ou não está retornando o erro 400 adequadamente em alguns casos. 
+**Dica:** Para garantir que a senha tenha pelo menos 8 caracteres e os requisitos, a regex deve considerar toda a string. Você pode usar algo como:
 
-**Possível causa:**  
-- O uso do `.strict()` no schema pode estar causando rejeição de campos extras, mas nem sempre o erro é tratado para retornar um JSON com detalhes.  
-- Ou o erro está sendo retornado, mas a mensagem não está clara para o cliente.
+```regex
+^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$
+```
 
-**Sugestão:** Para garantir que o Joi rejeite campos extras e retorne erros claros, você pode usar `.strict()` e tratar o erro para enviar uma resposta detalhada, como já faz. Também pode garantir que o middleware de erro global (`errorHandler.js`) está capturando esses erros de validação para formatá-los.
+Isso assegura que a senha tenha no mínimo 8 caracteres com os requisitos. Seu Joi já verifica o min(8), mas a regex deve cobrir a totalidade da string.
 
 ---
 
-### 3. Middleware de autenticação e proteção das rotas
+### 3. **Middleware de autenticação e proteção das rotas**
 
-Você aplicou o middleware `authMiddleware` nas rotas de `/agentes` e `/casos` corretamente:
+Você aplicou o middleware `authMiddleware` nas rotas de `/casos` e `/agentes` corretamente no `server.js`:
 
 ```js
 app.use('/casos', authMiddleware, casosRoute);
 app.use('/agentes', authMiddleware, agentesRoute);
 ```
 
-Isso está correto e protege as rotas. Porém, percebi que no middleware:
+Isso garante que qualquer requisição para essas rotas precise do token JWT válido. Muito bom!
+
+---
+
+### 4. **Resposta e status code na criação de agentes**
+
+No seu controller `agentesController.js`, na função `addAgente`, você retorna o agente criado com status 201, o que está correto:
 
 ```js
-function authMiddleware(req, res, next) {
-  try {
-    const tokenHeader = req.headers.authorization;
+return res.status(201).json(agent);
+```
 
-    if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Formato de token inválido' });
-    }
+Isso está alinhado com o esperado.
 
-    const token = tokenHeader.split(' ')[1];
-    const decoded = tokenUtils.verifyAccessToken(token);
-    req.user = decoded;
+---
 
-    next();
+### 5. **Tratamento de erros e mensagens**
 
-  } catch (error) {
-    return res.status(401).json({ error: 'Token inválido ou expirado' });
-  }
+Você está retornando mensagens e status codes apropriados em quase todos os lugares, o que é ótimo para a experiência do usuário e para o desenvolvimento front-end.
+
+Só tome cuidado em alguns pontos onde você retorna `res.status(404).json()` sem mensagem, por exemplo:
+
+```js
+if(!existingAgent) {
+  return res.status(404).json();
 }
 ```
 
-Você retorna mensagens genéricas, o que é bom para segurança, mas o teste espera que o status 401 seja retornado para tokens inválidos ou ausência do token. Isso está correto, então está tudo certo aqui!
+Seria melhor enviar uma mensagem clara:
+
+```js
+return res.status(404).json({ message: "Agente não encontrado" });
+```
+
+Isso ajuda na depuração e na comunicação com quem consome a API.
 
 ---
 
-### 4. Organização do knexfile e conexão com o banco
+### 6. **Filtros e busca nas rotas de agentes e casos**
 
-Seu `knexfile.js` está configurado para usar porta 5434, o que bate com seu `docker-compose.yml`:
+Você implementou filtros para agentes (por cargo e ordenação por data de incorporação) e para casos (status, agente_id, search). Isso é excelente!
 
-```yaml
-ports:
-  - "5434:5432"
-```
-
-Isso é importante para garantir que a aplicação se conecte corretamente ao banco rodando no docker.
-
----
-
-### 5. Falta de endpoint `/usuarios/me` funcionando corretamente
-
-Vi que você implementou o endpoint para retornar informações do usuário autenticado:
+Porém, os testes bônus indicam que a filtragem por data de incorporação com ordenação crescente e decrescente não passou completamente. Na sua função `findAll` do `agentesRepository.js`, você faz:
 
 ```js
-authRoutes.get('/usuarios/me', authMiddleware, authController.getLoggedUser);
-```
-
-E no controller, você busca o usuário pelo id do token e remove a senha antes de retornar:
-
-```js
-async function getLoggedUser(req, res) {
-  const { id } = req.user;
-  const user = await usuariosRepository.findUserById(id);
-  if (!user) {
-    return res.status(404).json({ message: "Usuário não encontrado" });
-  }
-  const { senha, ...userWithoutPassword } = user;
-  return res.status(200).json({
-    message: "Perfil do usuário",
-    usuario: userWithoutPassword
-  });
+if (filters.sort === "dataDeIncorporacao") {
+  query.orderBy("dataDeIncorporacao", "asc");
+} else if (filters.sort === "-dataDeIncorporacao") {
+  query.orderBy("dataDeIncorporacao", "desc");
 }
 ```
 
-Isso é excelente! Porém, os testes bônus indicam que esse endpoint ainda não está funcionando 100%. Verifique se:
+**Possível problema:**
 
-- O middleware está realmente populando `req.user` corretamente.  
-- O token enviado no header Authorization está correto.  
-- O usuário existe no banco.  
-- O endpoint está documentado no Swagger e no INSTRUCTIONS.md para facilitar o uso.
+- Você verifica `filters.sort` para ser exatamente `"dataDeIncorporacao"` ou `"-dataDeIncorporacao"`. Se o parâmetro enviado for diferente (ex: `"dataDeIncorporacao "` com espaço), não vai funcionar.
+- Também, o parâmetro `sort` pode estar vindo em outro formato.
 
----
+**Sugestão:**
 
-### 6. Recomendações gerais para melhorar a robustez e segurança
-
-- **Normalização dos dados:** Sempre normalize emails para minúsculas antes de salvar e consultar, para evitar duplicidades invisíveis.  
-- **Tratamento de erros:** Garanta que o middleware `errorHandler` capture todos os erros do Joi e do banco para retornar mensagens JSON claras e status apropriados.  
-- **Validação de payload estrita:** Use `.strict()` no Joi para garantir que campos extras sejam rejeitados, mantendo a API robusta.  
-- **Documentação:** Continue melhorando a documentação Swagger e o INSTRUCTIONS.md para cobrir todos os endpoints, especialmente os de autenticação.  
-- **Refresh Token:** Sua implementação de refresh token está correta, mas lembre-se de armazenar esses tokens de forma segura se for para produção (ex: banco ou cache).
+Garanta que o parâmetro seja tratado com `.trim()` e que o valor esperado seja exatamente o que o cliente envia.
 
 ---
 
-## Recursos recomendados para você aprender ainda mais 🔥
+### 7. **Tokens JWT e variáveis de ambiente**
 
-- Para entender melhor autenticação JWT e segurança, recomendo muito este vídeo, feito pelos meus criadores, que explica os conceitos básicos e fundamentais da cibersegurança:  
-  https://www.youtube.com/watch?v=Q4LQOfYwujk  
-- Para aprofundar no uso prático de JWT e refresh tokens em Node.js:  
-  https://www.youtube.com/watch?v=keS0JWOypIU  
-- Para dominar hashing de senhas com bcrypt e segurança:  
-  https://www.youtube.com/watch?v=L04Ln97AwoY  
-- Caso queira reforçar sua configuração de banco de dados com Docker e Knex, veja este vídeo excelente:  
-  https://www.youtube.com/watch?v=uEABDBQV-Ek&t=1s  
-- Para entender melhor a arquitetura MVC e organização de projetos Node.js:  
-  https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s  
+Você está usando a variável `JWT_SECRET` para gerar e verificar tokens, o que é uma ótima prática.
+
+Lembre-se de nunca deixar esse segredo exposto no código, e garantir que o arquivo `.env` esteja corretamente configurado no ambiente de produção e desenvolvimento.
 
 ---
 
-## Resumo rápido dos principais pontos para focar 💡
+### 8. **Logout**
 
-- 📌 Normalize emails para minúsculas antes de salvar e consultar para evitar duplicidade e erro 400.  
-- 📌 Garanta validação estrita dos dados no registro e login, retornando mensagens claras de erro.  
-- 📌 Verifique se o middleware de autenticação popula corretamente `req.user` para que endpoints protegidos funcionem.  
-- 📌 Continue aprimorando a documentação dos endpoints, especialmente os relacionados a autenticação.  
-- 📌 Mantenha o tratamento de erros consistente e claro para facilitar o uso da API por clientes.  
-- 📌 Teste seu endpoint `/usuarios/me` para garantir que retorna os dados do usuário autenticado corretamente.  
+Você implementou o logout da forma correta, informando que o JWT é stateless e que o logout é realizado no cliente, o que é uma ótima explicação e prática.
 
 ---
 
-Você está no caminho certo, HgrXKPT! Continue assim, aprimorando esses detalhes, e sua API vai ficar super profissional e segura. Se precisar, volte a olhar os recursos que indiquei para consolidar seu conhecimento. 🚀
+### 9. **Repositórios e uso do Knex**
 
-Conte comigo para o que precisar! 💙
+Seu uso do Knex para consultas está correto e limpo.
 
-Abraços e bons códigos! 👨‍💻👩‍💻
+Um detalhe para evitar problemas futuros: sempre trate erros no repositório para não vazar exceções inesperadas.
+
+---
+
+## 📚 Recursos para você aprofundar e corrigir esses pontos
+
+- Para **configuração de banco de dados com Docker e Knex**, recomendo este vídeo:  
+  https://www.youtube.com/watch?v=uEABDBQV-Ek&t=1s
+
+- Para entender melhor **Knex Query Builder** e evitar erros em queries:  
+  https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s
+
+- Sobre **autenticação e segurança com JWT e BCrypt**, este vídeo, feito pelos meus criadores, explica muito bem os conceitos básicos:  
+  https://www.youtube.com/watch?v=Q4LQOfYwujk
+
+- Para **JWT na prática** e entender geração e validação de tokens:  
+  https://www.youtube.com/watch?v=keS0JWOypIU
+
+- Para melhorar seu entendimento sobre **validação de dados e padrões de senha com Joi**:  
+  https://www.npmjs.com/package/joi#stringpatternregex-options
+
+---
+
+## 📝 Resumo Rápido dos Principais Pontos para Melhorar
+
+- 🔍 Ajustar a busca de e-mail no banco para ser case-insensitive, garantindo que e-mails duplicados não sejam criados.
+- 🔑 Refinar a regex de validação de senha para assegurar que os requisitos sejam aplicados a toda a string.
+- 💬 Melhorar mensagens de erro, especialmente em casos de 404, para facilitar o entendimento.
+- ⚙️ Validar e tratar o parâmetro `sort` para ordenação de agentes para garantir que filtros funcionem corretamente.
+- 🛡️ Confirmar que o `JWT_SECRET` está configurado corretamente no `.env` e não está exposto no código.
+- 🧹 Tratar erros nas funções do repositório para evitar vazamento de exceções.
+
+---
+
+## Conclusão
+
+Você está no caminho certo, HgrXKPT! Seu código está bem estruturado, com boas práticas de autenticação e segurança, e você já entregou várias funcionalidades importantes e bônus. Com alguns ajustes finos, principalmente na validação e no tratamento de dados no banco, seu projeto vai ficar robusto e profissional.
+
+Continue assim, a prática leva à perfeição! 💪✨
+
+Se precisar de ajuda para entender mais sobre autenticação, validação ou Knex, não hesite em consultar os recursos que indiquei.
+
+Estou torcendo pelo seu sucesso! 🚀
+
+Abraços do seu Code Buddy! 🤖❤️
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
