@@ -2,14 +2,16 @@
 
 # 🧪 Relatório de Avaliação – Journey Levty Etapa 1 - HgrXKPT
 
-**Data:** 23/08/2025 03:57
+**Data:** 23/08/2025 04:16
 
-**Nota Final:** `52.05/100`
-**Status:** ❌ Reprovado
+**Nota Final:** `70.18/100`
+**Status:** ✅ Aprovado
 
 ---
 ## ✅ Requisitos Obrigatórios
-- Foram encontrados `34` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
+- Foram encontrados `21` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
+  - ⚠️ **Falhou no teste**: `USERS: Recebe erro 400 ao tentar criar um usuário com e-mail já em uso`
+    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Cria agentes corretamente com status code 201 e os dados inalterados do agente mais seu ID`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Lista todos os agente corretamente com status code 200 e todos os dados de cada agente listados corretamente`
@@ -22,23 +24,9 @@
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Deleta dados de agente corretamente com status code 204 e corpo vazio`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 400 ao tentar criar agente com payload em formato incorreto`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status 404 ao tentar buscar um agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status 404 ao tentar buscar um agente com ID em formato inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 400 ao tentar atualizar agente por completo com método PUT e payload em formato incorreto`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar atualizar agente por completo com método PUT de agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar atualizar agente por completo com método PUT de agente de ID em formato incorreto`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 400 ao tentar atualizar agente parcialmente com método PATCH e payload em formato incorreto`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar atualizar agente por parcialmente com método PATCH de agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar deletar agente inexistente`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar deletar agente com ID inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
@@ -54,29 +42,15 @@
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Deleta dados de um caso corretamente com status code 204 e retorna corpo vazio`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 400 ao tentar criar caso com payload em formato incorreto`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar criar caso com ID de agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar criar caso com ID de agente inválido`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar buscar um caso por ID inválido`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar buscar um caso por ID inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 400 ao tentar atualizar um caso por completo com método PUT com payload em formato incorreto`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso por completo com método PUT de um caso inexistente`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso por completo com método PUT de um caso com ID inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso parcialmente com método PATCH de um caso inexistente`
+  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 401 ao tentar criar caso sem header de autorização com JWT`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso parcialmente com método PATCH de um caso com ID inválido`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar deletar um caso inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar deletar um caso com ID inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
 
 ## ⭐ Itens de Destaque (recupera até 40 pontos)
