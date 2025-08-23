@@ -66,8 +66,13 @@ async function addAgente(req, res) {
       });
     }
 
+    const createdAgent={
+      nome : value.nome,
+      dataDeIncorporacao: value.dataDeIncorporacao,
+      cargo: value.cargo
+    }
 
-  const agent = await agentesRepository.createAgent(value);
+  const agent = await agentesRepository.createAgent(createdAgent);
 
   return res.status(201).json(agent);
 
