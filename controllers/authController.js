@@ -90,7 +90,7 @@ async function register(req, res, next){
             nome: Joi.string().min(3).max(100).trim().required(),
             email: Joi.string().email().trim().required(),
             senha: Joi.string().min(8).max(255)
-            .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/)
+            .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/)
             .messages({
                     'string.pattern.base': 'A senha deve conter pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial (!@#$%^&*)',
                     'string.min': 'A senha deve ter no mínimo 8 caracteres',
