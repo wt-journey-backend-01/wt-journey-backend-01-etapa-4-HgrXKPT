@@ -5,9 +5,10 @@
 exports.seed = async function(knex) {
   // Deletes ALL existing entries
   await knex('agentes').del()
+  await knex.raw('ALTER SEQUENCE agentes_id_seq RESTART WITH 1');
   await knex('agentes').insert([
-    {id: 1, nome: "Roberto", dataDeIncorporacao: "2023-01-01", cargo: "Detetive"},
-    {id: 2, nome: "Maria", dataDeIncorporacao: "2023-02-01", cargo: "Investigadora"},
+    { nome: "Roberto", dataDeIncorporacao: "2023-01-01", cargo: "Detetive"},
+    { nome: "Maria", dataDeIncorporacao: "2023-02-01", cargo: "Investigadora"},
     
   ]);
 };

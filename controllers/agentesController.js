@@ -4,12 +4,23 @@ const Joi = require("joi")
 
 
 async function findAll(req, res) {
-
-  const { cargo, sort } = req.query;
+  try{
+    const { cargo, sort } = req.query;
   const filters = { cargo, sort };
+
   const agentes = await agentesRepository.findAll(filters);
 
   res.status(200).json(agentes);
+  }catch (error) {
+    return res.status(500).json({
+      status: 500,
+      message: "Erro ao buscar agentes",
+      errors: {
+        internal: error.message
+      }
+    });
+  }
+  
 }
 
 async function findById(req, res) {
@@ -49,10 +60,7 @@ async function findById(req, res) {
 async function addAgente(req, res) {
   const agentSchema = Joi.object({
     nome: Joi.string().trim().min(1).required(),
-    dataDeIncorporacao: Joi.string()
-        .pattern(/^\d{4}-\d{2}-\d{2}$/)
-        .message('Data deve estar no formato YYYY-MM-DD')
-        .required(),
+    dataDeIncorporacao: Joi.date().iso().max("now").required(),
     cargo: Joi.string().trim().min(1).required(),
   }).strict();
   try{

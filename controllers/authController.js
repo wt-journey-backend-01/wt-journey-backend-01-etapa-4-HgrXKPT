@@ -26,11 +26,15 @@ async function login(req, res){
       });
     }
 
+    console.log('Email recebido:', value.email); // DEBUG
+
     const user = await usuariosRepository.findUserByEmail(value.email);
 
     if (!user) {
         return res.status(400).json({ message: "Usuário não encontrado" });
     }
+
+    console.log(await Bcrypt.hash(value.senha, 10)); // DEBUG
 
     const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
 
