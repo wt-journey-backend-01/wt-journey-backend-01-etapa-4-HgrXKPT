@@ -1,5 +1,6 @@
 const routes = require('express').Router();
 const agenteController = require('../controllers/agentesController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 /**
  * @openapi
@@ -25,7 +26,7 @@ const agenteController = require('../controllers/agentesController');
  *               items:
  *                 $ref: '#/components/schemas/Agente'
  */
-routes.get('/', agenteController.findAll);
+routes.get('/',authMiddleware, agenteController.findAll);
 
 /**
  * @openapi
@@ -51,7 +52,7 @@ routes.get('/', agenteController.findAll);
  *       404:
  *         description: Agente não encontrado
  */
-routes.get('/:id', agenteController.findById);
+routes.get('/:id', authMiddleware, agenteController.findById);
 
 /**
  * @openapi
@@ -76,7 +77,7 @@ routes.get('/:id', agenteController.findById);
  *       400:
  *         description: Dados inválidos
  */
-routes.post('/', agenteController.addAgente);
+routes.post('/', authMiddleware,  agenteController.addAgente);
 
 /**
  * @openapi
@@ -109,7 +110,7 @@ routes.post('/', agenteController.addAgente);
  *       400:
  *         description: Dados inválidos
  */
-routes.put('/:id', agenteController.updateAgent);
+routes.put('/:id',  authMiddleware, agenteController.updateAgent);
 
 /**
  * @openapi
@@ -142,7 +143,7 @@ routes.put('/:id', agenteController.updateAgent);
  *       400:
  *         description: Dados inválidos
  */
-routes.patch('/:id', agenteController.partialUpdate);
+routes.patch('/:id', authMiddleware, agenteController.partialUpdate);
 
 /**
  * @openapi
@@ -163,6 +164,6 @@ routes.patch('/:id', agenteController.partialUpdate);
  *       404:
  *         description: Agente não encontrado
  */
-routes.delete('/:id', agenteController.deleteAgent);
+routes.delete('/:id', authMiddleware, agenteController.deleteAgent);
 
 module.exports = routes;
