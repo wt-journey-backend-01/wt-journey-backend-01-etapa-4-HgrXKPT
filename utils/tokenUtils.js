@@ -12,7 +12,7 @@ function generateAccessToken(user) {
             type: 'access'
         }, 
         ACCESS_TOKEN_SECRET, 
-        { expiresIn: '15m' }
+        { expiresIn: '30m' }
     );
 }
 
@@ -42,11 +42,7 @@ function verifyAccessToken(token) {
 // Verificar refresh token
 function verifyRefreshToken(token) {
     try {
-        const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
-            if(err){
-                throw new Error("Refresh token inválido ou expirado")
-            }
-        });
+        const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET );
        
         return decoded;
     } catch (error) {
