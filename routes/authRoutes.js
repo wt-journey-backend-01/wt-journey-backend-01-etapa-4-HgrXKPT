@@ -9,14 +9,6 @@ authRoutes.post('/login', authController.login);
 
 authRoutes.post('/register', authController.register);
 
-authRoutes.post('/logout', authMiddleware,authController.logout);
-
-authRoutes.post('/refresh-token', authController.refreshToken);
-
-authRoutes.delete('/users/:id',authMiddleware , authController.deleteUser);
-
-authRoutes.get('/usuarios/me',authMiddleware, authController.getLoggedUser);
-
 
 
 

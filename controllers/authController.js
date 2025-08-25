@@ -47,13 +47,13 @@ async function login(req, res){
 
     const accessToken = tokenUtils.generateAccessToken(user);
     
-    const refreshToken = tokenUtils.generateRefreshToken(user);
+
     
 
     return res.status(200).json({
-        access_token: accessToken,
-        refresh_token: refreshToken
-        });
+        access_token: accessToken
+    });
+
 }
 
 async function refreshToken(req, res) {
