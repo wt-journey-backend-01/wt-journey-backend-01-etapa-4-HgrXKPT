@@ -53,6 +53,5 @@ module.exports = {
     findUserByEmail,
     insertUser,
     findUserById,
-    deleteUser,
-    findUserByName
+    deleteUser
 }
