@@ -31,10 +31,12 @@ function generateRefreshToken(user) {
 // Verificar access token
 function verifyAccessToken(token) {
     try {
-        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
-        if (decoded.type !== 'access') {
-            throw new Error('Tipo de token inválido');
-        }
+        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET, (err) => {
+            if (err) {
+                throw new Error('Access token inválido ou expirado');
+            }
+        });
+        
         return decoded;
     } catch (error) {
         throw new Error('Access token inválido');
@@ -44,10 +46,12 @@ function verifyAccessToken(token) {
 // Verificar refresh token
 function verifyRefreshToken(token) {
     try {
-        const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
-        if (decoded.type !== 'refresh') {
-            throw new Error('Tipo de token inválido');
-        }
+        const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET, (err) => {
+            if(err){
+                throw new Error("Refresh token inválido ou expirado")
+            }
+        });
+       
         return decoded;
     } catch (error) {
         throw new Error('Refresh token inválido');

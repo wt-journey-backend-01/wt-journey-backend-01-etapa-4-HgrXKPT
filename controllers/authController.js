@@ -46,6 +46,7 @@ async function login(req, res){
     }
 
     const accessToken = tokenUtils.generateAccessToken(user);
+    
     const refreshToken = tokenUtils.generateRefreshToken(user);
 
     return res.status(200).json({
