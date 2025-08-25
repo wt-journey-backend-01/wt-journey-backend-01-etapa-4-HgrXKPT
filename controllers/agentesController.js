@@ -8,6 +8,8 @@ async function findAll(req, res) {
     const { cargo, sort } = req.query;
   const filters = { cargo, sort };
 
+  console.log("User: ", req.user);
+
   const agentes = await agentesRepository.findAll(filters);
 
   res.status(200).json(agentes);

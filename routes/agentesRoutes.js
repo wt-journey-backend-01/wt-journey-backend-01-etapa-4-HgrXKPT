@@ -26,7 +26,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
  *               items:
  *                 $ref: '#/components/schemas/Agente'
  */
-routes.get('/',agenteController.findAll);
+routes.get('/', authMiddleware ,agenteController.findAll);
 
 /**
  * @openapi

@@ -31,11 +31,7 @@ function generateRefreshToken(user) {
 // Verificar access token
 function verifyAccessToken(token) {
     try {
-        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET, (err) => {
-            if (err) {
-                throw new Error('Access token inválido ou expirado');
-            }
-        });
+        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
         
         return decoded;
     } catch (error) {
