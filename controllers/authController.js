@@ -12,7 +12,7 @@ const { email } = require("zod");
 
 async function login(req, res){
     const loginSchema = Joi.object({
-        nome: Joi.string().required(),
+        email: Joi.string().required(),
         senha: Joi.string().min(8).required()
     }).strict();
     
@@ -27,9 +27,9 @@ async function login(req, res){
       });
     }
 
-    console.log('Nome Recebido:', value.nome); // DEBUG
+    console.log('Nome Recebido:', value.email); // DEBUG
 
-    const user = await usuariosRepository.findUserByName(value.nome);
+    const user = await usuariosRepository.findUserByEmail(value.email);
 
     if (!user) {
         return res.status(401).json({ 
