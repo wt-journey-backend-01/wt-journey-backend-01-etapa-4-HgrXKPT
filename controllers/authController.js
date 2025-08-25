@@ -10,7 +10,85 @@ const { email } = require("zod");
 
 
 
+async function login(req, res){
+    const loginSchema = Joi.object({
+        email: Joi.string().required(),
+        senha: Joi.string().min(8).required()
+    }).strict();
+    
+    
+    const { error, value } = loginSchema.validate(req.body);
 
+    if(error){
+      return res.status(400).json({
+        status: 400,
+        message: "Dados inválidos",
+        errors: error.details,
+      });
+    }
+
+    console.log('Nome Recebido:', value.email); // DEBUG
+
+    const user = await usuariosRepository.findUserByEmail(value.email);
+
+    if (!user) {
+        return res.status(401).json({ 
+        message: "Usuário não encontrado"
+    });
+    }
+
+    console.log(await Bcrypt.hash(value.senha, 10)); // DEBUG
+
+    const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
+    if (!isPasswordValid) {
+
+       return res.status(401).json({ message: "Senha inválida" });
+    }
+
+    const accessToken = tokenUtils.generateAccessToken(user);
+    
+    const refreshToken = tokenUtils.generateRefreshToken(user);
+    
+
+    return res.status(200).json({
+        access_token: accessToken,
+        refresh_token: refreshToken
+        });
+}
+
+async function refreshToken(req, res) {
+try{
+    const { refresh_token } = req.body;
+
+    if (!refresh_token) {
+            return res.status(400).json({ 
+                message: "Refresh token é obrigatório" 
+            });
+        }
+    
+         const decoded = tokenUtils.verifyRefreshToken(refresh_token);
+
+         const user = await usuariosRepository.findUserById(decoded.id)
+
+         if (!user) {
+            return res.status(401).json({ 
+                message: "Usuário não encontrado" 
+            });
+        }
+
+        const newAccessToken = tokenUtils.generateAccessToken(user);
+
+        res.status(200).json({
+            access_token: newAccessToken,
+            expires_in: 900
+        });
+} catch (error) {
+    return res.status(401).json({ 
+        message: "Refresh token inválido ou expirado" 
+    });
+    
+}
+}
 
 async function register(req, res, next){
 
@@ -71,76 +149,6 @@ async function register(req, res, next){
     
     
 }
-
-async function login(req, res){
-    
-    const value = req.body;
-
-    console.log('Nome Recebido:', value.email); // DEBUG
-
-    const user = await usuariosRepository.findUserByEmail(value.email);
-
-    if (!user) {
-        return res.status(404).json({ 
-        message: "Usuário não encontrado"
-    });
-    }
-
-    console.log(await Bcrypt.hash(value.senha, 10)); // DEBUG
-
-    const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
-    
-    if (!isPasswordValid) {
-
-       return res.status(401).json({ message: "Senha inválida" });
-    }
-
-    const accessToken = tokenUtils.generateAccessToken(user);
-    
-    const refreshToken = tokenUtils.generateRefreshToken(user);
-    
-
-    return res.status(200).json({
-        access_token: accessToken,
-        refresh_token: refreshToken
-        });
-}
-
-
-async function refreshToken(req, res) {
-try{
-    const { refresh_token } = req.body;
-
-    if (!refresh_token) {
-            return res.status(400).json({ 
-                message: "Refresh token é obrigatório" 
-            });
-        }
-    
-         const decoded = tokenUtils.verifyRefreshToken(refresh_token);
-
-         const user = await usuariosRepository.findUserById(decoded.id)
-
-         if (!user) {
-            return res.status(401).json({ 
-                message: "Usuário não encontrado" 
-            });
-        }
-
-        const newAccessToken = tokenUtils.generateAccessToken(user);
-
-        res.status(200).json({
-            access_token: newAccessToken,
-            expires_in: 900
-        });
-} catch (error) {
-    return res.status(401).json({ 
-        message: "Refresh token inválido ou expirado" 
-    });
-    
-}
-}
-
 
 async function logout(req, res){
      try {
