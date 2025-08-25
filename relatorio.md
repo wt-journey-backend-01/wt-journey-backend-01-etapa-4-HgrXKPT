@@ -2,14 +2,14 @@
 
 # 🧪 Relatório de Avaliação – Journey Levty Etapa 1 - HgrXKPT
 
-**Data:** 25/08/2025 02:09
+**Data:** 25/08/2025 02:20
 
-**Nota Final:** `71.93/100`
-**Status:** ✅ Aprovado
+**Nota Final:** `66.93/100`
+**Status:** ❌ Reprovado
 
 ---
 ## ✅ Requisitos Obrigatórios
-- Foram encontrados `20` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
+- Foram encontrados `24` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
   - ⚠️ **Falhou no teste**: `AGENTS: Cria agentes corretamente com status code 201 e os dados inalterados do agente mais seu ID`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Lista todos os agente corretamente com status code 200 e todos os dados de cada agente listados corretamente`
@@ -42,6 +42,10 @@
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar buscar um caso por ID inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
+  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 401 ao tentar buscar caso sem header de autorização com JWT`
+    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
+  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 401 ao tentar listar todos os casos sem header de autorização com JWT`
+    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso por completo com método PUT de um caso inexistente`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso por completo com método PUT de um caso com ID inválido`
@@ -49,6 +53,10 @@
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 401 ao tentar criar caso sem header de autorização com JWT`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso parcialmente com método PATCH de um caso com ID inválido`
+    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
+  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 401 ao tentar atualizar caso parcialmente com método PATCH de um caso sem header de autorização com JWT`
+    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
+  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 401 ao tentar deletar um caso sem o header de autorização com JWT`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
 
 ## ⭐ Itens de Destaque (recupera até 40 pontos)
