@@ -48,6 +48,7 @@ async function login(req, res){
     const accessToken = tokenUtils.generateAccessToken(user);
     
     const refreshToken = tokenUtils.generateRefreshToken(user);
+    
 
     return res.status(200).json({
         access_token: accessToken,
@@ -123,7 +124,7 @@ async function register(req, res, next){
     const existingUser = await usuariosRepository.findUserByEmail(email);
 
         console.log('Existing user:', existingUser); // DEBUG
-    console.log('Tipo do existingUser:', typeof existingUser); // DEBUG
+        console.log('Tipo do existingUser:', typeof existingUser); // DEBUG
 
      if (existingUser && existingUser.id) {
        return res.status(400).json({
