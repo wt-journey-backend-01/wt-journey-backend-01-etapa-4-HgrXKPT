@@ -64,7 +64,7 @@ async function addAgente(req, res) {
     nome: Joi.string().trim().min(1).required(),
     dataDeIncorporacao: Joi.date().iso().max("now").required(),
     cargo: Joi.string().trim().min(1).required(),
-  }).strict();
+  });
   try{
     const {error, value } = agentSchema.validate(req.body);
 
