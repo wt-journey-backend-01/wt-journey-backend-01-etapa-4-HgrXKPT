@@ -51,7 +51,8 @@ async function findById(req, res) {
         },
       });
     }
-    res.status(200).json(agente);
+    
+    return res.status(200).json(agente);
   } catch (error) {
     return res.status(404).json({
       status: 404,
@@ -105,7 +106,7 @@ async function addAgente(req, res) {
 async function updateAgent(req, res) {
   const agentSchema = Joi.object({
     nome: Joi.string().trim().min(1).required(),
-    dataDeIncorporacao: Joi.date().iso().max("now").required(),
+    dataDeIncorporacao: Joi.date().format('YYYY-MM-DD').max("now").required(),
     cargo: Joi.string().trim().min(1).required(),
   });
     const { id } = req.params;
@@ -147,7 +148,7 @@ async function updateAgent(req, res) {
 async function partialUpdate(req, res) {
   const partialSchema = Joi.object({
     nome: Joi.string().trim().min(1).optional(),
-    dataDeIncorporacao: Joi.date().iso().max("now").optional(),
+    dataDeIncorporacao: Joi.date().format('YYYY-MM-DD').max("now").optional(),
     cargo: Joi.string().trim().min(1).optional(),
   });
 

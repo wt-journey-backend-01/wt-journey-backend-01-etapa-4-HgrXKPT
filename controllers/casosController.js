@@ -30,6 +30,7 @@ async function getCasoById(req, res) {
   const { caso_id } = req.params;
 
   const id = Number(caso_id);
+  
   if (!Number.isInteger(id)) {
       return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
     }
@@ -102,14 +103,17 @@ async function createCase(req, res) {
 
   const existingAgent = await agentesRepository.findAgentById(value.agente_id);
   if (!existingAgent) {
-    return res.status(404).json();
+    return res.status(404).json({
+      status: 404,
+      message: "Agente nao encontrado"
+    });
   };
 
   const createdCase =  await casosRepository.createCase(value);
 
   
 
-   res.status(201).json(createdCase);
+   return res.status(201).json(createdCase);
 
 } catch (error) {
   return res.status(500).json({

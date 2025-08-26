@@ -47,7 +47,7 @@ async function createCase(caseData){
 
     const [createdCase] = await db('casos').insert(caseData).returning('*');
     if(!createdCase){
-      throw new Error('Erro ao criar caso: o repositório retornou null/undefined'); 
+      return null; 
     }
     return createdCase
   
