@@ -2,6 +2,7 @@ const casosRepository = require("../repositories/casosRepository");
 const agentesRepository = require("../repositories/agentesRepository");
 
 const Joi = require("joi");
+const z = require("zod");
 
 async function getAllCasos(req, res) {
   try{
@@ -21,6 +22,8 @@ async function getAllCasos(req, res) {
       }
     });
   }
+
+  
   
 }
 
@@ -82,37 +85,37 @@ async function getAgenteAssociateToCase(req, res) {
 
 async function createCase(req, res) {
 
-   const createSchema = Joi.object({
-    titulo: Joi.string().trim().min(1).required(),
-    descricao: Joi.string().trim().min(1).required(),
-    status: Joi.string().valid("aberto", "solucionado").required(),
-    agente_id: Joi.number().required(),
-  }); 
+   const createSchema = z.object({
+    titulo: z.string().min(1, "Titulo Obrigatorio"),
+    descricao: z.string().min(1, "Descrição Obrigatoria"),
+   status: z.enum(["aberto", "solucionado"]),
+    agente_id: z.number().min(1)
+}).strict();
+  
 
   try{
-  const { error, value } = createSchema.validate(req.body);
+    const validatedData = createSchema.safeParse(req.body);
 
-   if(error){
-      return res.status(400).json({
-        status: 400,
-        message: "Dados inválidos",
-        errors: error.details,
-      });
-    }
+      if(!validatedData.success){
+    return res.status(400).json({
+      status: 400,
+      message: "Payload incorreto"
+    })
+   }
 
-
-  const existingAgent = await agentesRepository.findAgentById(value.agente_id);
-  
+  const existingAgent = await agentesRepository.findAgentById(validatedData.data.agente_id);
   if (!existingAgent) {
-    return res.status(404).json({
-      status: 404,
-      message: "Agente nao encontrado"
-    });
+    return res.status(404).json()
   };
 
-  const createdCase =  await casosRepository.createCase(value);
-
+  const createdCase =  await casosRepository.createCase(validatedData.data);
   
+  if(createdCase){
+    res.status(400).json({
+      status: 400,
+      message: "Erro ao criar caso"
+    })
+  }
 
    return res.status(201).json(createdCase);
 
@@ -129,29 +132,40 @@ async function createCase(req, res) {
 
 async function updateCase(req, res) {
 
-  const updateSchema = Joi.object({
-    titulo: Joi.string().trim().min(1).required(),
-    descricao: Joi.string().trim().min(1).required(),
-    status: Joi.string().valid("aberto", "solucionado").required(),
-    agente_id: Joi.number().required(),
-  }).strict();
+const updateSchema = z.object({
+    titulo: z.string().min(1, "Titulo Obrigatorio"),
+    descricao: z.string().min(1, "Descrição Obrigatoria"),
+   status: z.enum(["aberto", "solucionado"]),
+    agente_id: z.number().min(1)
+}).strict();
+  
 
-      const { caso_id } = req.params;
 
-     
+
+    const { caso_id } = req.params;
 
   const id = Number(caso_id);
   if (!Number.isInteger(id)) {
-      return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
+      return res.status(404).json({ 
+        status: 404,
+        message: "ID Invalido"
+       });
     }
 
-  const { error, value } = updateSchema.validate(req.body);
 
-  if (error) {
-    return res.status(400).json();
-  }
+
+  const validatedData = updateSchema.safeParse(req.body);
+
+      if(!validatedData.success){
+    return res.status(400).json({
+      status: 400,
+      message: "Payload incorreto"
+    })
+   }
+
 
   const existingCase = await casosRepository.findCaseById(caso_id);
+
   if (!existingCase) {
     return res.status(404).json({
       status: 404,
@@ -162,17 +176,9 @@ async function updateCase(req, res) {
     });
   };
 
-
-  if (value.id && value.id !== caso_id) {
-    return res.status(400).json({
-      status: 400,
-      message: "Não é permitido alterar o campo 'id'.",
-    });
-  }
-
   
 
-    const agentExists = await agentesRepository.findAgentById(value.agente_id);
+    const agentExists = await agentesRepository.findAgentById(validatedData.data.agente_id);
 
     if (!agentExists) {
       return res.status(404).json({
@@ -183,7 +189,7 @@ async function updateCase(req, res) {
 
 
 
-  const updated = await casosRepository.updateCase(caso_id, value);
+  const updated = await casosRepository.updateCase(caso_id, validatedData.data);
   return res.status(200).json(updated);
   
 
@@ -191,12 +197,17 @@ async function updateCase(req, res) {
 }
 
 async function  partialUpdateCase(req, res) {
-  const updateSchema = Joi.object({
-    titulo: Joi.string().trim().min(1).optional(),
-    descricao: Joi.string().trim().min(1).optional(),
-    status: Joi.string().valid("aberto", "solucionado").optional(),
-    agente_id: Joi.number().optional(),
-  });
+
+  const updateSchema = z.object({
+    titulo: z.string().min(1, "Titulo Obrigatorio").optional(),
+    descricao: z.string().min(1, "Descrição Obrigatoria").optional(),
+   status: z.enum(["aberto", "solucionado"]).optional(),
+    agente_id: z.number().min(1).optional()
+}).strict()
+  .refine(obj => Object.keys(obj).length>0,{
+    message: "Pelo menos um campo deve ser preenchido"
+  });;
+    
 
   try{
       const { caso_id } = req.params;
@@ -205,23 +216,16 @@ async function  partialUpdateCase(req, res) {
   if (!Number.isInteger(id)) {
       return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
     }
-  const {error, value} = updateSchema.validate(req.body);
 
-   if (error) {
+  const validatedData = agentSchema.safeParse(req.body);
+    if(!validatedData.success){
     return res.status(400).json({
       status: 400,
-      message: "Dados inválidos",
-      errors: error.details,
-    });
-  }
+      message: "Payload incorreto"
 
+    })
+   }
 
-  if (value.id && value.id !== caso_id) {
-  return res.status(400).json({
-    status: 400,
-    message: "Não é permitido alterar o campo 'id'.",
-  });
-}
 
   const existingCase = await casosRepository.findCaseById(caso_id);
   if (!existingCase) {
@@ -236,7 +240,7 @@ async function  partialUpdateCase(req, res) {
 
 
   if (value.agente_id) {
-    const agentExists = await agentesRepository.findAgentById(value.agente_id);
+    const agentExists = await agentesRepository.findAgentById(validatedData.data.agente_id);
     if (!agentExists) {
       return res.status(404).json({
         status: 404,
@@ -247,7 +251,7 @@ async function  partialUpdateCase(req, res) {
 
  
 
-  const updated = await casosRepository.updateCase(caso_id, value);
+  const updated = await casosRepository.updateCase(caso_id, validatedData.data);
 
   return res.status(200).json(updated);
 
@@ -284,7 +288,7 @@ async function deleteCase(req, res) {
     });
   };
 
-  res.status(204).send();
+  return res.status(204).send();
 }
 
 module.exports = {

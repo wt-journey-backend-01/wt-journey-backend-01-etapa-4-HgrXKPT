@@ -54,10 +54,6 @@ async function createCase(caseData){
     }
     
     return createdCase
-  
-    
-
-    
 
 }
 

@@ -202,9 +202,9 @@ async function partialUpdate(req, res) {
   }
 
   const toUpdateAgent = {
-    nome: validatedData.nome ?? agente.nome,
-    dataDeIncorporacao: validatedData.dataDeIncorporacao ?? agente.dataDeIncorporacao,
-    cargo: validatedData.cargo ?? agente.cargo,
+    nome: validatedData.data.nome ?? agente.nome,
+    dataDeIncorporacao: validatedData.data.dataDeIncorporacao ?? agente.dataDeIncorporacao,
+    cargo: validatedData.data.cargo ?? agente.cargo,
   };
  
 
