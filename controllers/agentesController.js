@@ -1,21 +1,19 @@
 const agentesRepository = require("../repositories/agentesRepository");
-const { parseISO, isValid, isFuture } = require("date-fns");
-const joi = require("joi")
-const JoiDate = require('@joi/date');
+const Joi = require("joi");
+const z = require("zod");
 
-const Joi = joi.extend(JoiDate);
+
 
 
 async function findAll(req, res) {
   try{
-    const { cargo, sort } = req.query;
+  const { cargo, sort } = req.query;
   const filters = { cargo, sort };
-
-  console.log("User: ", req.user);
 
   const agentes = await agentesRepository.findAll(filters);
 
-  res.status(200).json(agentes);
+  return res.status(200).json(agentes);
+
   }catch (error) {
     return res.status(500).json({
       status: 500,
@@ -51,7 +49,7 @@ async function findById(req, res) {
         },
       });
     }
-    
+
     return res.status(200).json(agente);
   } catch (error) {
     return res.status(404).json({
@@ -63,30 +61,26 @@ async function findById(req, res) {
     });
   }
 }
+
 async function addAgente(req, res) {
-  const agentSchema = Joi.object({
-    nome: Joi.string().trim().min(1).required(),
-    dataDeIncorporacao: Joi.date().format('YYYY-MM-DD').max("now").required(),
-    cargo: Joi.string().trim().min(1).required(),
-  });
+
+
+  const agentSchema = z.object({
+    nome: z.string().min(1, "Nome obrigatório"),
+    dataDeIncorporacao: z.string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD")
+        .refine(val => new Date(val) <= new Date(), {
+            message: "Data não pode ser futura"
+        }),
+    cargo: z.string().min(1, "Cargo obrigatório")
+}).strict();
+
+  
   try{
-    const {error, value } = agentSchema.validate(req.body);
+    const validatedData = agentSchema.parse(req.body);
 
-    if(error){
-      return res.status(400).json({
-        status: 400,
-        message: "Dados inválidos",
-        errors: error.details,
-      });
-    }
 
-    const createdAgent={
-      nome : value.nome,
-      dataDeIncorporacao: value.dataDeIncorporacao,
-      cargo: value.cargo
-    }
-
-  const agent = await agentesRepository.createAgent(createdAgent);
+  const agent = await agentesRepository.createAgent(validatedData);
 
   return res.status(201).json(agent);
 

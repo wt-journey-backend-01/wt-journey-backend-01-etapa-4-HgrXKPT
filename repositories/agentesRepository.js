@@ -15,7 +15,7 @@ async function findAll(filters) {
     }
     const agentes = await query.select("*");
 
-    if(!agentes) {
+    if(agentes.length === 0) {
       return null; 
     }
 
@@ -30,37 +30,25 @@ async function findAll(filters) {
 }
 
 async function findAgentById(id) {
+    const agente = await db("agentes").where({ id }).first();
+    
+    if (!agente) return null;
 
-   
-    const query = db("agentes");
-
-    const agente = await query.where({ id }).first();
-
-    if (!agente) {
-      return null;
-    }
-
-    const formatedDateAgent = {
-      ...agente,
-      dataDeIncorporacao: new Date(agente.dataDeIncorporacao)
-        .toISOString()
-        .split("T")[0],
-    }
-  return formatedDateAgent;
-  
-   
-
-  
+    return {
+        ...agente,
+        dataDeIncorporacao: new Date(agente.dataDeIncorporacao).toISOString().split("T")[0]
+    };
 }
+
 
 async function createAgent(agenteData) {
 
     const [createdAgent] = await db("agentes")
       .insert(agenteData)
-      .returning("*"); // Retorna todas as colunas do registro criado
+      .returning("*");
 
       if (!createdAgent) {
-        return null; // Ou lance um erro, dependendo da lógica do seu aplicativo 
+        return null; 
       }
 
     return{

@@ -30,7 +30,7 @@ async function getCasoById(req, res) {
   const { caso_id } = req.params;
 
   const id = Number(caso_id);
-  
+
   if (!Number.isInteger(id)) {
       return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
     }
@@ -102,6 +102,7 @@ async function createCase(req, res) {
 
 
   const existingAgent = await agentesRepository.findAgentById(value.agente_id);
+  
   if (!existingAgent) {
     return res.status(404).json({
       status: 404,

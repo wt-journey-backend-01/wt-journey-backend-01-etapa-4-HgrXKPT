@@ -45,10 +45,14 @@ const db = require('../db/db');
 
 async function createCase(caseData){
 
-    const [createdCase] = await db('casos').insert(caseData).returning('*');
+    const [createdCase] = await db('casos')
+    .insert(caseData)
+    .returning('*');
+
     if(!createdCase){
       return null; 
     }
+    
     return createdCase
   
     
