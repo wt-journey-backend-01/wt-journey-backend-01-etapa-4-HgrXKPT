@@ -32,7 +32,7 @@ async function getCasoById(req, res) {
   const id = Number(caso_id);
 
   if (!Number.isInteger(id)) {
-      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+      return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
     }
 
   const caso = await casosRepository.findCaseById(caso_id);
@@ -142,7 +142,7 @@ async function updateCase(req, res) {
 
   const id = Number(caso_id);
   if (!Number.isInteger(id)) {
-      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+      return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
     }
 
   const { error, value } = updateSchema.validate(req.body);
@@ -203,7 +203,7 @@ async function  partialUpdateCase(req, res) {
 
   const id = Number(caso_id);
   if (!Number.isInteger(id)) {
-      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+      return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
     }
   const {error, value} = updateSchema.validate(req.body);
 

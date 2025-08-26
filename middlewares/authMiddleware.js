@@ -29,7 +29,7 @@ function authMiddleware(req, res, next) {
         
     } catch (error) {
         console.error('Erro no middleware:', error.message);
-        return res.status(403).json({ error: 'Token inválido: ' + error.message });
+        return res.status(401).json({ error: 'Token inválido: ' + error.message });
     }
 }
 
