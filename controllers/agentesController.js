@@ -1,6 +1,9 @@
 const agentesRepository = require("../repositories/agentesRepository");
 const { parseISO, isValid, isFuture } = require("date-fns");
-const Joi = require("joi")
+const joi = require("joi")
+const JoiDate = require('@joi/date');
+
+const Joi = joi.extend(JoiDate);
 
 
 async function findAll(req, res) {
@@ -62,7 +65,7 @@ async function findById(req, res) {
 async function addAgente(req, res) {
   const agentSchema = Joi.object({
     nome: Joi.string().trim().min(1).required(),
-    dataDeIncorporacao: Joi.date().iso().max("now").required(),
+    dataDeIncorporacao: Joi.date().format('YYYY-MM-DD').max("now").required(),
     cargo: Joi.string().trim().min(1).required(),
   });
   try{
