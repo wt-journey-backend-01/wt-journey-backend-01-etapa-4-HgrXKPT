@@ -77,10 +77,18 @@ async function addAgente(req, res) {
 
   
   try{
-    const validatedData = agentSchema.parse(req.body);
+
+    const validatedData = agentSchema.safeParse(req.body);
+
+      if(!validatedData.success){
+    return res.status(400).json({
+      status: 400,
+      message: "Payload incorreto"
+    })
+   }
 
 
-  const agent = await agentesRepository.createAgent(validatedData);
+  const agent = await agentesRepository.createAgent(validatedData.data);
 
   return res.status(201).json(agent);
 
@@ -98,11 +106,18 @@ async function addAgente(req, res) {
 }
 
 async function updateAgent(req, res) {
-  const agentSchema = Joi.object({
-    nome: Joi.string().trim().min(1).required(),
-    dataDeIncorporacao: Joi.date().format('YYYY-MM-DD').max("now").required(),
-    cargo: Joi.string().trim().min(1).required(),
-  });
+
+  
+  const agentSchema = z.object({
+    nome: z.string().min(1, "Nome obrigatório"),
+    dataDeIncorporacao: z.string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD")
+        .refine(val => new Date(val) <= new Date(), {
+            message: "Data não pode ser futura"
+        }),
+    cargo: z.string().min(1, "Cargo obrigatório")
+}).strict();
+
     const { id } = req.params;
 
      const idNum = Number(id);
@@ -120,31 +135,36 @@ async function updateAgent(req, res) {
       return res.status(404).json();
     }
 
-    const { error, value } = agentSchema.validate(req.body);
+     const validatedData = agentSchema.safeParse(req.body);
+
+      if(!validatedData.success){
+    return res.status(400).json({
+      status: 400,
+      message: "Payload incorreto"
+    })
+   }
     
-    if (error) {
-      return res.status(400).json({
-        status: 400,
-        message: "Dados inválidos",
-        errors: error.details,
-      });
-    }
-
-   
-
-
-    const updated = await agentesRepository.updateAgent(id, value);
+    const updated = await agentesRepository.updateAgent(id, validatedData.data);
+    
     return res.status(200).json(updated);
 
   }
 
 
 async function partialUpdate(req, res) {
-  const partialSchema = Joi.object({
-    nome: Joi.string().trim().min(1).optional(),
-    dataDeIncorporacao: Joi.date().format('YYYY-MM-DD').max("now").optional(),
-    cargo: Joi.string().trim().min(1).optional(),
-  });
+    const agentSchema = z.object({
+    nome: z.string().min(1, "Nome obrigatório").optional(),
+    dataDeIncorporacao: z.string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD")
+        .refine(val => new Date(val) <= new Date(), {
+            message: "Data não pode ser futura"
+        })
+        .optional(),
+    cargo: z.string().min(1, "Cargo obrigatório").optional()
+}).strict()
+.refine(obj => Object.keys(obj).length>0,{
+   message: "Pelo menos um campo deve ser preenchido"
+});
 
 
   try{
@@ -159,26 +179,15 @@ async function partialUpdate(req, res) {
       });
     }
 
-  if (req.body.id && req.body.id !== id) {
+
+   const validatedData = agentSchema.safeParse(req.body);
+    if(!validatedData.success){
     return res.status(400).json({
       status: 400,
-      message: "Não é permitido alterar o campo 'id'.",
-    });
-  }
+      message: "Payload incorreto"
 
-  const { error, value } = partialSchema.validate(req.body);
-
-  if (error) {
-    return res.status(400).json({
-      status: 400,
-      message: "Payload incorreto",
-      errors: {
-        id: "O payload está incorreto",
-      },
-    });
-  }
-
-  
+    })
+   }
 
   const agente = await agentesRepository.findAgentById(id);
 
@@ -193,9 +202,9 @@ async function partialUpdate(req, res) {
   }
 
   const toUpdateAgent = {
-    nome: value.nome ?? agente.nome,
-    dataDeIncorporacao: value.dataDeIncorporacao ?? agente.dataDeIncorporacao,
-    cargo: value.cargo ?? agente.cargo,
+    nome: validatedData.nome ?? agente.nome,
+    dataDeIncorporacao: validatedData.dataDeIncorporacao ?? agente.dataDeIncorporacao,
+    cargo: validatedData.cargo ?? agente.cargo,
   };
  
 
@@ -206,7 +215,6 @@ async function partialUpdate(req, res) {
     return res.status(500).json({
       status: 500,
       message: "Erro ao atualizar agente",
-      errors: error.details
     });
   }
   
