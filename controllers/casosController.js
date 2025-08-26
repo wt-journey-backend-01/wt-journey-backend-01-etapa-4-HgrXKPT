@@ -29,8 +29,8 @@ async function getAllCasos(req, res) {
 
 async function getCasoById(req, res) {
 
-
-  const { caso_id } = req.params;
+try{
+const { caso_id } = req.params;
 
   const id = Number(caso_id);
 
@@ -46,6 +46,12 @@ async function getCasoById(req, res) {
 
   return res.status(200).json(caso);
  
+}catch (error) {
+       
+        console.error("Erro ao buscar caso:", error);
+        return res.status(500).json("Error ao buscar caso")
+    }
+  
   
 }
 
@@ -109,7 +115,7 @@ async function createCase(req, res) {
   };
 
   const createdCase =  await casosRepository.createCase(validatedData.data);
-  
+
   if(createdCase){
     res.status(400).json({
       status: 400,
@@ -239,7 +245,7 @@ async function  partialUpdateCase(req, res) {
   };
 
 
-  if (value.agente_id) {
+  if (validatedData.data.agente_id) {
     const agentExists = await agentesRepository.findAgentById(validatedData.data.agente_id);
     if (!agentExists) {
       return res.status(404).json({

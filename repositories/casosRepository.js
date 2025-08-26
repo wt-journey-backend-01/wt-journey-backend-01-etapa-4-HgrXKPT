@@ -31,12 +31,18 @@ const db = require('../db/db');
 }
 
  async function findCaseById(id){
-
+  try{
     const query =  db("casos");
 
     const caso = await query.where({ id }).first();
     
-    return caso;  
+    return caso;
+  }catch (error) {
+        
+        console.error("Erro ao buscar caso:", error);
+        throw error; 
+    }
+      
   
     
    
