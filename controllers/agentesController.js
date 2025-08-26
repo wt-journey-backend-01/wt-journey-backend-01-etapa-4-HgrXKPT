@@ -33,8 +33,8 @@ async function findById(req, res) {
     const idNum = Number(id);
 
     if (!Number.isInteger(idNum)) {
-      return res.status(400).json({
-        status: 400,
+      return res.status(404).json({
+        status: 404,
         message: "ID inválido: deve ser um número inteiro",
       });
     }
@@ -123,8 +123,8 @@ async function updateAgent(req, res) {
      const idNum = Number(id);
 
     if (!Number.isInteger(idNum)) {
-      return res.status(400).json({
-        status: 400,
+      return res.status(404).json({
+        status: 404,
         message: "ID inválido: deve ser um número inteiro",
       });
     }
@@ -173,8 +173,8 @@ async function partialUpdate(req, res) {
     const idNum = Number(id);
 
     if (!Number.isInteger(idNum)) {
-      return res.status(400).json({
-        status: 400,
+      return res.status(404).json({
+        status: 404,
         message: "ID inválido: deve ser um número inteiro",
       });
     }
@@ -227,8 +227,8 @@ async function deleteAgent(req, res) {
      const idNum = Number(id);
 
     if (!Number.isInteger(idNum)) {
-      return res.status(400).json({
-        status: 400,
+      return res.status(404).json({
+        status: 404,
         message: "ID inválido: deve ser um número inteiro",
       });
     }
