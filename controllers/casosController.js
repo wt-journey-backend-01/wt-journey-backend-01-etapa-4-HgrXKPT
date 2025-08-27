@@ -116,7 +116,7 @@ async function createCase(req, res) {
 
   const createdCase =  await casosRepository.createCase(validatedData.data);
 
-  if(createdCase){
+  if(!createdCase){
     res.status(400).json({
       status: 400,
       message: "Erro ao criar caso"
