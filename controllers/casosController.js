@@ -74,7 +74,10 @@ async function getAgenteAssociateToCase(req, res) {
   }
     const agente = await agentesRepository.findAgentById(caso.agente_id);
     if(!agente){
-      return res.status(404).json();
+      return res.status(404).json({
+        status: 404,
+        message: "Agente não encontrado"
+      });
     }
     return res.status(200).json(agente);
 
@@ -111,7 +114,13 @@ async function createCase(req, res) {
 
   const existingAgent = await agentesRepository.findAgentById(validatedData.data.agente_id);
   if (!existingAgent) {
-    return res.status(404).json()
+    return res.status(404).json({
+      status: 404,
+      message: "Agente não encontrado",
+      errors: {
+        agente_id: "O agente responsável não foi encontrado",
+      },
+    })
   };
 
   const createdCase =  await casosRepository.createCase(validatedData.data);
@@ -223,7 +232,7 @@ async function  partialUpdateCase(req, res) {
       return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
     }
 
-  const validatedData = agentSchema.safeParse(req.body);
+  const validatedData = updateSchema.safeParse(req.body);
     if(!validatedData.success){
     return res.status(400).json({
       status: 400,
