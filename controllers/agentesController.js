@@ -188,7 +188,8 @@ async function partialUpdate(req, res) {
 
     })
    }
-
+   
+   //
   const agente = await agentesRepository.findAgentById(id);
 
   if (!agente) {
