@@ -53,7 +53,7 @@ async function login(req, res, next){
 
     return res.status(200).json({
         access_token: accessToken,
-        refreshToken: refreshToken
+        refresh_token: refreshToken
     });
     }catch (error) {
         next(error);
@@ -124,7 +124,7 @@ async function register(req, res, next){
     
     const email = value.email.toLowerCase();
 
-    console.log('Email convertido:', email);
+    
 
     const existingUser = await usuariosRepository.findUserByEmail(email);
 

@@ -41,8 +41,11 @@ const authRoutes = express.Router();
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 acess_token:
  *                   type: string
+ *                 refresh_token:
+ *                   type: string
+ * 
  *       400:
  *         description: Dados inválidos
  */

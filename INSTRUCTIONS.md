@@ -87,6 +87,6 @@ Faça a requisição
 
 
 
-## 🚨 IMPORANTE!!!!
+## 🚨 IMPORTANTE!!!!
 Levei em consideração que tenha clonado o repositorio e tem todos arquivos já configurados.
 

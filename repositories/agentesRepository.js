@@ -23,6 +23,14 @@ async function findAll(filters) {
    if (filters.sort && !validSortValues.includes(filters.sort)){
       throw new QueryExceptionError(`Parâmetro sort inválido. Valores aceitos: ${validSortValues.join(", ")}`);
    }
+
+   if (filters.sort) {
+  if (filters.sort === 'dataDeIncorporacao') {
+    query.orderBy('dataDeIncorporacao', 'asc');
+  } else if (filters.sort === '-dataDeIncorporacao') {
+    query.orderBy('dataDeIncorporacao', 'desc');
+  }
+}
    
 
     const agentes = await query.select("*");
