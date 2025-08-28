@@ -105,10 +105,9 @@ async function deleteCase(id){
     const deleted = await query.where({ id }).del();
 
       if(deleted === 0){
-         throw new Error("Error ao deletar caso");
+         throw new NotFoundExceptionError("Caso não encontrado");
       }
-  return true; // Retorna o número de registros deletados
-
+  return true; 
 }
 
 

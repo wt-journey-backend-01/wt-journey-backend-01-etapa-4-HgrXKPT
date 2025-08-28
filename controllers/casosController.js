@@ -268,11 +268,11 @@ const { caso_id } = req.params;
 
   const id = Number(caso_id);
   if (!Number.isInteger(id)) {
-      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+      return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
     }
  
 
-  const removed = await casosRepository.deleteCase(caso_id);
+  const removed = await casosRepository.deleteCase(id);
   if (!removed) {
     return res.status(404).json({
       status: 404,
