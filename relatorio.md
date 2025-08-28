@@ -1,212 +1,269 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 8 créditos restantes para usar o sistema de feedback AI.
+Você tem 7 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para HgrXKPT:
 
-Nota final: **100.0/100**
+Nota final: **97.5/100**
 
-# Feedback para HgrXKPT 🚓🔐 — Segurança, Autenticação e API Completa em Node.js
+# Feedback para HgrXKPT 🚓✨
 
-Olá, HgrXKPT! 👋 Parabéns pelo excelente trabalho! 🎉 Você alcançou a nota máxima **100.0/100** nos testes base, o que demonstra uma implementação muito sólida dos requisitos obrigatórios. Além disso, você conseguiu implementar alguns bônus importantes, como:
-
-- Filtragem por status, agente e palavras-chave no endpoint de casos.
-- Endpoint para buscar o agente responsável por um caso.
-- Ordenação e filtragem avançada de agentes por data de incorporação.
-- Mensagens customizadas de erro para filtros inválidos.
-- Endpoint `/usuarios/me` para retornar dados do usuário autenticado.
-
-Essas conquistas bônus mostram que você foi além do básico e entregou uma API robusta, segura e com funcionalidades aprimoradas! 👏👏
+Olá, HgrXKPT! Primeiramente, parabéns pelo seu empenho e pelo seu projeto! 🎉 Você alcançou uma nota excelente de **97.5/100**, o que demonstra muita dedicação e domínio dos conceitos. Vamos juntos analisar seu código para entender os pontos fortes e onde podemos melhorar para chegar à perfeição! 🚀
 
 ---
 
-## ✅ Pontos Fortes que Merecem Destaque
+## 🎉 Pontos Fortes e Conquistas Extras
 
-- **Estrutura do projeto** está muito bem organizada, seguindo o padrão MVC com pastas separadas para controllers, repositories, routes, middlewares e utils, exatamente como esperado.  
-- **Autenticação JWT** está bem implementada, com middleware de proteção de rotas, geração e validação de tokens.  
-- **Hashing de senhas** com bcrypt foi feito corretamente, incluindo validação rigorosa da senha no registro.  
-- **Tratamento de erros** consistente com status codes apropriados e mensagens claras.  
-- **Documentação no INSTRUCTIONS.md** é clara, com exemplos práticos e orientações para uso do token JWT.  
-- **Uso correto do Knex** para migrações, seeds e queries, com atenção ao tratamento de datas e filtros.  
-- **Endpoints REST** implementados com todos os métodos (GET, POST, PUT, PATCH, DELETE) funcionando conforme esperado.  
-- **Logout** implementado de forma adequada para JWT (stateless).  
-- **Testes base passaram 100%**, mostrando que os requisitos obrigatórios estão totalmente atendidos.
+- Seu projeto está muito bem organizado, seguindo a arquitetura MVC com controllers, repositories, rotas e middlewares bem separados. Isso facilita manutenção e escalabilidade.
+- A autenticação com JWT está implementada corretamente, incluindo registro, login, logout, refresh token e proteção das rotas de agentes e casos.
+- Você aplicou validações robustas com **Joi** e **Zod**, garantindo que os dados recebidos estejam sempre no formato esperado.
+- Documentação via Swagger está muito bem feita, com exemplos claros e endpoints bem descritos.
+- O uso do bcrypt para hashing das senhas está correto, incluindo salt rounds.
+- O middleware de autenticação está verificando o token e adicionando o usuário no `req.user`, garantindo segurança nas rotas protegidas.
+- Você implementou o endpoint `/usuarios/me` para retornar os dados do usuário autenticado, um bônus muito bem-vindo!
+- Os testes bônus que passaram mostram que você conseguiu implementar filtros avançados e mensagens de erro customizadas, um diferencial muito bacana.
 
----
-
-## 🚨 Análise dos Testes Bônus que Falharam
-
-Você teve 11 testes bônus que falharam, relacionados a funcionalidades extras e filtros avançados:
-
-- Filtragem simples e complexa de casos e agentes (por status, agente, keywords, data de incorporação com ordenação ascendente e descendente).
-- Mensagens customizadas para erros de filtros inválidos.
-- Endpoint `/usuarios/me` retornando dados do usuário autenticado.
-
-### Possível Causa Raiz
-
-Pelo que foi entregue no código, você implementou corretamente o endpoint `/usuarios/me` e a filtragem básica em controllers e repositories. Porém, a falha nos testes bônus indica que:
-
-- **Filtros avançados podem estar incompletos ou não aplicados exatamente como esperado.**  
-  Por exemplo, a ordenação por data de incorporação no repositório de agentes está implementada, mas talvez falte tratar alguns casos de filtro ou a mensagem de erro customizada para filtros inválidos.  
-- **Mensagens customizadas para erros de filtros** podem não estar totalmente implementadas ou não seguem o padrão esperado pelo teste.  
-- **Filtros no endpoint de casos podem não cobrir todos os casos testados (ex: busca por keywords combinada, ou filtragem por agente com tipos incorretos).**
-
-### Recomendações para Melhorar estes Pontos
-
-- Revise a lógica de filtragem no `agentesRepository.js` e `casosRepository.js` para garantir que todos os filtros esperados estejam cobertos, incluindo validações e mensagens customizadas para filtros inválidos.  
-- Garanta que as mensagens de erro para filtros inválidos estejam claras e sigam o formato esperado (exemplo: status 400 com objeto de erros detalhados).  
-- Teste manualmente os filtros combinados para verificar se o comportamento está correto.  
-- Para o endpoint `/usuarios/me`, verifique se o retorno está exatamente no formato esperado pelo teste, sem campos extras ou faltantes.
+Parabéns por tudo isso! 👏👏
 
 ---
 
-## 🔍 Análise Detalhada de Pontos Específicos para Ajuste
+## 🚨 Testes que Falharam e Análise Detalhada
 
-### 1. Filtragem Avançada e Mensagens Customizadas
+### Testes Base que Falharam
 
-No arquivo `repositories/agentesRepository.js` você tem:
+- `CASES: Recebe status code 404 ao tentar deletar um caso inexistente`
+- `CASES: Recebe status code 404 ao tentar deletar um caso com ID inválido`
+
+---
+
+### Análise de Causa Raiz: Falha no DELETE /casos/:id para casos inexistentes ou ID inválido
+
+Vamos analisar o método de delete do controller de casos para entender o porquê da falha:
 
 ```js
-if (filters.cargo) {
-  query.where("cargo", "like", `%${filters.cargo}%`);
-}
+async function deleteCase(req, res) {
+  try{
+    const { caso_id } = req.params;
 
-if (filters.sort === "dataDeIncorporacao") {
-  query.orderBy("dataDeIncorporacao", "asc");
-} else if (filters.sort === "-dataDeIncorporacao") {
-  query.orderBy("dataDeIncorporacao", "desc");
-}
-```
-
-- **Sugestão:** Adicione validação para o parâmetro `sort` antes de aplicar a ordenação, para retornar erro claro se o valor for inválido.  
-- **Exemplo de validação:**
-
-```js
-const validSorts = ['dataDeIncorporacao', '-dataDeIncorporacao'];
-if (filters.sort && !validSorts.includes(filters.sort)) {
-  throw new Error('Parâmetro de ordenação inválido');
-}
-```
-
-No controller, capture esse erro para retornar status 400 com mensagem adequada.
-
----
-
-### 2. Endpoint `/usuarios/me`
-
-No `authController.js` você tem:
-
-```js
-async function getLoggedUser(req, res) {
-    try {
-        const { id } = req.user;    
-
-        const user = await usuariosRepository.findUserById(id);
-
-        if (!user) {
-            return res.status(404).json({ message: "Usuário não encontrado" });
-        }
-
-        const { senha, ...userWithoutPassword } = user;
-
-        return res.status(200).json({
-            message: "Perfil do usuário",
-            usuario: userWithoutPassword
-        });
-    } catch (error) {
-        return res.status(500).json({ message: "Erro interno do servidor" });
+    const id = Number(caso_id);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
     }
+
+    const removed = await casosRepository.deleteCase(caso_id);
+    if (!removed) {
+      return res.status(404).json({
+        status: 404,
+        message: "Parâmetros inválidos",
+        errors: {
+          caso_id: "O caso não foi encontrado' ",
+        },
+      });
+    };
+
+    return res.status(204).send();
+  }catch (error) {
+    next(error);
+  }
 }
 ```
 
-- **Sugestão:** Verifique se o teste espera o objeto diretamente, sem o campo `message`. Talvez o teste espere só os dados do usuário no corpo da resposta, assim:
+**Problemas detectados:**
+
+1. **Status code para ID inválido:**  
+   No requisito, o teste espera que, ao passar um ID inválido para deletar um caso, o servidor retorne **404 Not Found**, mas você está retornando **400 Bad Request**:
+   ```js
+   if (!Number.isInteger(id)) {
+      return res.status(400).json({ error: "ID inválido: deve ser um número inteiro." });
+   }
+   ```
+   Isso gera falha no teste.
+
+2. **Tratamento do retorno do repositório:**  
+   O repositório `deleteCase` lança um erro se não deletar nada, veja:
 
 ```js
-return res.status(200).json(userWithoutPassword);
-```
+async function deleteCase(id){
+    const query = db('casos')
 
-- Ajuste conforme o teste para garantir a compatibilidade exata.
+    const deleted = await query.where({ id }).del();
 
----
-
-### 3. Mensagens de Erro para Filtros Inválidos
-
-No controller de agentes e casos, não vi validação explícita para filtros inválidos que retornem mensagens customizadas.
-
-- **Sugestão:** Implemente validação dos parâmetros de query recebidos, e caso algum filtro seja inválido, retorne status 400 com um JSON detalhado, por exemplo:
-
-```js
-if (req.query.sort && !['dataDeIncorporacao', '-dataDeIncorporacao'].includes(req.query.sort)) {
-  return res.status(400).json({
-    status: 400,
-    message: 'Parâmetro sort inválido',
-    errors: {
-      sort: 'Valor deve ser dataDeIncorporacao ou -dataDeIncorporacao'
+    if(deleted === 0){
+       throw new Error("Error ao deletar caso");
     }
-  });
+    return true; // Retorna o número de registros deletados
 }
 ```
 
-- Isso ajuda a cobrir os testes de mensagens customizadas.
+Ou seja, se o caso não existir, ele lança erro, mas no controller você não está tratando esse erro para enviar um 404, e sim um erro genérico.
+
+3. **Uso inconsistente do parâmetro `id` e `caso_id`:**  
+   Você converte o `caso_id` para `id` para validação, mas depois chama o repositório com `caso_id` (string).  
+   Embora o Knex aceite string, é mais seguro usar o número convertido para evitar inconsistências.
 
 ---
 
-## 🛠️ Dicas para Melhorar seu Código
+### Como corrigir?
 
-- Use `try/catch` para capturar erros de filtro e retornar mensagens amigáveis no controller.  
-- Centralize validações de query params para manter o código limpo.  
-- Faça testes manuais com ferramentas como Postman para validar os filtros e mensagens de erro.  
-- Mantenha seu `.env` seguro e não versionado, para proteger seu segredo JWT.  
-- Continue documentando seus endpoints no Swagger e no INSTRUCTIONS.md, isso é fundamental para APIs profissionais.
+1. **Mudar o status code para 404 para ID inválido** no controller:
+
+```js
+if (!Number.isInteger(id)) {
+  return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
+}
+```
+
+2. **Tratar o erro lançado pelo repositório para retornar 404**:
+
+```js
+try {
+  await casosRepository.deleteCase(id);
+  return res.status(204).send();
+} catch (error) {
+  if (error.message.includes("Error ao deletar caso")) {
+    return res.status(404).json({
+      status: 404,
+      message: "Caso não encontrado",
+    });
+  }
+  next(error);
+}
+```
+
+3. **Usar o `id` convertido para chamar o repositório** para manter consistência:
+
+```js
+const removed = await casosRepository.deleteCase(id);
+```
 
 ---
 
-## 📚 Recursos Recomendados para Você
+### Exemplo corrigido do método deleteCase:
 
-Para aprimorar os pontos mencionados, recomendo fortemente estes vídeos, que são ótimos para consolidar seu conhecimento:
+```js
+async function deleteCase(req, res, next) {
+  try {
+    const { caso_id } = req.params;
+    const id = Number(caso_id);
 
-- **Autenticação JWT e segurança com Node.js:**  
+    if (!Number.isInteger(id)) {
+      return res.status(404).json({ error: "ID inválido: deve ser um número inteiro." });
+    }
+
+    await casosRepository.deleteCase(id);
+
+    return res.status(204).send();
+  } catch (error) {
+    if (error.message.includes("Error ao deletar caso")) {
+      return res.status(404).json({
+        status: 404,
+        message: "Caso não encontrado",
+      });
+    }
+    next(error);
+  }
+}
+```
+
+---
+
+## 📁 Sobre a Estrutura de Diretórios
+
+Sua estrutura está **muito bem organizada** e condiz com o esperado no enunciado! Isso é ótimo e fundamental para projetos profissionais.
+
+Segue um lembrete da estrutura esperada, que você seguiu:
+
+```
+📦 SEU-REPOSITÓRIO
+│
+├── package.json
+├── server.js
+├── .env
+├── knexfile.js
+├── INSTRUCTIONS.md
+│
+├── db/
+│ ├── migrations/
+│ ├── seeds/
+│ └── db.js
+│
+├── routes/
+│ ├── agentesRoutes.js
+│ ├── casosRoutes.js
+│ └── authRoutes.js
+│
+├── controllers/
+│ ├── agentesController.js
+│ ├── casosController.js
+│ └── authController.js
+│
+├── repositories/
+│ ├── agentesRepository.js
+│ ├── casosRepository.js
+│ └── usuariosRepository.js
+│
+├── middlewares/
+│ └── authMiddleware.js
+│
+├── utils/
+│ └── errorHandler.js
+```
+
+Parabéns por manter essa organização! Isso é fundamental para projetos escaláveis e para facilitar o trabalho em equipe.
+
+---
+
+## 💡 Recomendações de Aprendizado
+
+Para te ajudar a aprofundar ainda mais seu conhecimento e evitar problemas similares no futuro, recomendo:
+
+- **Tratamento de erros e status HTTP em APIs RESTful:**  
+  https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s  
+  (Vídeo que fala sobre boas práticas na arquitetura e tratamento de erros)
+
+- **Autenticação JWT na prática:**  
+  https://www.youtube.com/watch?v=keS0JWOypIU  
+  (Esse vídeo, feito pelos meus criadores, fala muito bem sobre JWT e como usá-lo corretamente)
+
+- **Validação de dados com Joi:**  
   https://www.youtube.com/watch?v=Q4LQOfYwujk  
-  *(Esse vídeo, feito pelos meus criadores, fala muito bem sobre conceitos básicos e fundamentais de segurança, JWT e autenticação.)*
+  (Vídeo que explica conceitos básicos de segurança e validação)
 
-- **JWT na prática com Node.js:**  
-  https://www.youtube.com/watch?v=keS0JWOypIU
-
-- **Knex Query Builder para filtros e queries avançadas:**  
-  https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s
-
-- **Arquitetura MVC e organização de projetos Node.js:**  
-  https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s
+- **Knex.js Query Builder:**  
+  https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s  
+  (Para entender melhor como construir queries e tratar resultados)
 
 ---
 
-## 📝 Resumo dos Pontos para Focar
+## 🔍 Resumo dos Pontos para Melhorar
 
-- [ ] Validar e tratar filtros de query params com mensagens de erro customizadas (status 400).  
-- [ ] Garantir que o endpoint `/usuarios/me` retorne o JSON exatamente no formato esperado pelo teste.  
-- [ ] Testar manualmente filtros combinados nos endpoints de casos e agentes para garantir funcionamento correto.  
-- [ ] Ajustar mensagens de erro para parâmetros inválidos, especialmente no `sort` de agentes.  
-- [ ] Continuar documentando e mantendo a estrutura do projeto organizada.
-
----
-
-## Conclusão e Incentivo Final 🚀
-
-HgrXKPT, sua entrega está excelente! Você dominou a autenticação JWT, hashing de senhas, proteção de rotas e organização de código de forma profissional. Os testes base passando 100% confirmam isso! 🎯
-
-Os pequenos ajustes nos bônus são a cereja do bolo para deixar sua API ainda mais robusta e alinhada com as melhores práticas. Continue explorando, testando e aprimorando esses detalhes.
-
-Você está no caminho certo para se tornar um desenvolvedor backend de alto nível! 💪 Continue assim, e nunca pare de aprender! Se precisar, volte aos vídeos recomendados para aprofundar ainda mais.
-
-Parabéns pelo esforço e dedicação! 👏👏👏
-
-Se precisar de ajuda para implementar algum ajuste, estou aqui para te ajudar! 😉
+- [ ] Corrigir o status code para **404 Not Found** ao receber ID inválido no DELETE de casos (atualmente retorna 400).
+- [ ] Tratar o erro lançado pelo repositório ao tentar deletar caso inexistente para enviar resposta 404 ao invés de erro genérico.
+- [ ] Usar o ID convertido para número ao chamar o repositório para evitar inconsistências.
+- [ ] Revisar o tratamento de erros no controller para garantir que o cliente receba mensagens claras e status codes corretos.
+- [ ] Continuar explorando os recursos recomendados para aprimorar o manejo de erros e autenticação.
 
 ---
 
-Abraços virtuais e sucesso na sua jornada! 🌟  
-Seu Code Buddy,  
-🤖💻
+## ✨ Considerações Finais
+
+Você está muito perto da perfeição! Seu código está limpo, organizado e com boa cobertura dos requisitos obrigatórios e bônus. A implementação da autenticação JWT e o uso das validações são pontos fortes que merecem destaque.
+
+O pequeno ajuste no tratamento do DELETE de casos vai destravar esses últimos testes e deixar sua API ainda mais profissional.
+
+Continue assim, aprendendo e evoluindo! Qualquer dúvida, pode contar comigo para ajudar! 💪🚀
+
+Um abraço e sucesso na jornada! 👮‍♂️👩‍💻
+
+---
+
+Se quiser revisar aquele vídeo sobre JWT que eu mencionei, aqui está novamente o link:  
+https://www.youtube.com/watch?v=keS0JWOypIU
+
+E para entender melhor o tratamento de erros em APIs:  
+https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s
+
+Até a próxima! 😉
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
