@@ -10,14 +10,14 @@ const { email } = require("zod");
 
 
 
-async function login(req, res){
+async function login(req, res, next){
     const loginSchema = Joi.object({
         email: Joi.string().required(),
         senha: Joi.string().min(8).required()
     }).strict();
     
-    
-    const { error, value } = loginSchema.validate(req.body);
+    try{
+        const { error, value } = loginSchema.validate(req.body);
 
     if(error){
       return res.status(400).json({
@@ -27,7 +27,7 @@ async function login(req, res){
       });
     }
 
-    console.log('Nome Recebido:', value.email); // DEBUG
+    
 
     const user = await usuariosRepository.findUserByEmail(value.email);
 
@@ -37,7 +37,7 @@ async function login(req, res){
     });
     }
 
-    console.log(await Bcrypt.hash(value.senha, 10)); // DEBUG
+   
 
     const isPasswordValid = await Bcrypt.compare(value.senha, user.senha);
     if (!isPasswordValid) {
@@ -46,17 +46,23 @@ async function login(req, res){
     }
 
     const accessToken = tokenUtils.generateAccessToken(user);
+    const refreshToken = tokenUtils.generateRefreshToken(user);
     
 
     
 
     return res.status(200).json({
-        access_token: accessToken
+        access_token: accessToken,
+        refreshToken: refreshToken
     });
+    }catch (error) {
+        next(error);
+    }
+    
 
 }
 
-async function refreshToken(req, res) {
+async function refreshToken(req, res,next) {
 try{
     const { refresh_token } = req.body;
 
@@ -77,15 +83,14 @@ try{
         }
 
         const newAccessToken = tokenUtils.generateAccessToken(user);
+        
 
         res.status(200).json({
             access_token: newAccessToken,
             expires_in: 900
         });
 } catch (error) {
-    return res.status(401).json({ 
-        message: "Refresh token inválido ou expirado" 
-    });
+    next(error);
     
 }
 }
@@ -106,8 +111,8 @@ async function register(req, res, next){
             })
             .required(),
         }).strict();
-
-    const { error, value } = createUserSchema.validate(req.body);
+        try{
+            const { error, value } = createUserSchema.validate(req.body);
 
     if(error){
       return res.status(400).json({
@@ -123,8 +128,7 @@ async function register(req, res, next){
 
     const existingUser = await usuariosRepository.findUserByEmail(email);
 
-        console.log('Existing user:', existingUser); // DEBUG
-        console.log('Tipo do existingUser:', typeof existingUser); // DEBUG
+      
 
      if (existingUser && existingUser.id) {
        return res.status(400).json({
@@ -146,11 +150,15 @@ async function register(req, res, next){
     const { senha, ...userWithoutPassword } = newUser;
 
    return res.status(201).json(userWithoutPassword);
+        }catch (error){
+            next(error);
+        }
+    
     
     
 }
 
-async function logout(req, res){
+async function logout(req, res,next){
      try {
         // Como JWT é stateless, o logout é feito no cliente
         // Esta rota serve para informar ao cliente que deve descartar o token
@@ -161,16 +169,13 @@ async function logout(req, res){
         });
         
     } catch (error) {
-    
-        return res.status(500).json({
-            message: "Erro interno do servidor durante o logout"
-        });
+        next(error);
     }
 
 }
 
 
-async function deleteUser(req, res){
+async function deleteUser(req, res, next){
     try {
 
         const {id} = req.params;
@@ -198,16 +203,11 @@ async function deleteUser(req, res){
     
 
     } catch (error) {
-        return res.status(500).json({
-            message: "Erro interno do servidor ao deletar usuário",
-            errors: {
-                internal: error.message
-            }
-        });
+       next(error);
     }
 }
 
-async function getLoggedUser(req, res) {
+async function getLoggedUser(req, res,next ) {
     try {
         const { id } = req.user;    
 
@@ -219,14 +219,10 @@ async function getLoggedUser(req, res) {
 
         const { senha, ...userWithoutPassword } = user;
 
-        return res.status(200).json({
-            message: "Perfil do usuário",
-            usuario: userWithoutPassword
-        }
-            
-        );
+        return res.status(200).json(userWithoutPassword );
+
     } catch (error) {
-        return res.status(500).json({ message: "Erro interno do servidor" });
+        next(error);
     }
 }
 

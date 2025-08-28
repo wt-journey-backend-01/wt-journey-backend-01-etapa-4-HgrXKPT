@@ -2,46 +2,62 @@
 
 const { tr } = require('date-fns/locale');
 const db = require('../db/db');
+const QueryExceptionError = require('../utils/QueryExceptionError');
+const NotFoundExceptionError = require('../utils/NotFoundExceptionError');
 
 
  async function findAll(filters) {
-  try{
-     const query = db('casos');
+  
+     let query = db('casos');
 
     if(filters.status){
-     query.where('status', filters.status);
+      
+     query = query.where('status', filters.status);
     }
 
     if(filters.agente_id){
-      query.where('agente_id', filters.agente_id);
+      
+      query = query.where('agente_id', filters.agente_id);
     }
 
     if(filters.search){
-      query.where(function() {
+      
+
+      query = query.where(function() {
         this.where('titulo', 'like', `%${filters.search}%`)
             .orWhere('descricao', 'like', `%${filters.search}%`);
       });
     }
     const casos = await query.select('*');
+
+    if(filters.status && casos.length === 0){
+      throw new QueryExceptionError(`Status '${filters.status}' não encontrado.`);
+    }
+
+     if(filters.agente_id && casos.length === 0){
+      throw new QueryExceptionError(`Agente com id '${filters.agente_id}' não encontrado.`);
+    }
+
+     if(filters.search && casos.length === 0){
+      throw new QueryExceptionError(`titulo ou descricao '${filters.search}' não encontrado.`);
+    }
+ 
     return casos;
-  }catch (error) {
-    throw new Error('Erro ao buscar casos: ' + error.message);
-  }
+
    
 }
 
  async function findCaseById(id){
-  try{
+ 
     const query =  db("casos");
 
     const caso = await query.where({ id }).first();
+    if(!caso){
+      throw new NotFoundExceptionError("Caso não encontrado");
+    }
     
     return caso;
-  }catch (error) {
-        
-        console.error("Erro ao buscar caso:", error);
-        throw error; 
-    }
+
       
   
     
@@ -56,7 +72,7 @@ async function createCase(caseData){
     .returning('*');
 
     if(!createdCase){
-      return null; 
+      throw new Error("Erro ao criar caso");
     }
     
     return createdCase
@@ -74,7 +90,7 @@ async function createCase(caseData){
       .returning('*');
 
       if(!updatedCase){
-        return null
+        throw new Error("Erro ao atualizar caso");
       }
 
  
@@ -89,7 +105,7 @@ async function deleteCase(id){
     const deleted = await query.where({ id }).del();
 
       if(deleted === 0){
-         return null
+         throw new Error("Error ao deletar caso");
       }
   return true; // Retorna o número de registros deletados
 

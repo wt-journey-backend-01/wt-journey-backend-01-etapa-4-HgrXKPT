@@ -27,8 +27,8 @@ app.use('/casos',authMiddleware , casosRoute);
 app.use('/agentes',authMiddleware ,agentesRoute);
 
 
-app.use(errorHandler); // Middleware para lidar com erros
-
+ // Middleware para lidar com erros
+app.use(errorHandler);
 
 
 

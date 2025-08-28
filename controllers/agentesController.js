@@ -1,32 +1,42 @@
 const agentesRepository = require("../repositories/agentesRepository");
-const Joi = require("joi");
+
 const z = require("zod");
 
 
 
 
-async function findAll(req, res) {
+async function findAll(req, res, next) {
   try{
   const { cargo, sort } = req.query;
   const filters = { cargo, sort };
+
+  if (req.query.sort && !['dataDeIncorporacao', '-dataDeIncorporacao'].includes(req.query.sort)) {
+  return res.status(400).json({
+    status: 400,
+    message: 'Parâmetro sort inválido',
+    errors: {
+      sort: 'Valor deve ser dataDeIncorporacao ou -dataDeIncorporacao'
+    }
+  });
+}
+
+console.log(req.query.cargo)
+
+
+
+  
 
   const agentes = await agentesRepository.findAll(filters);
 
   return res.status(200).json(agentes);
 
   }catch (error) {
-    return res.status(500).json({
-      status: 500,
-      message: "Erro ao buscar agentes",
-      errors: {
-        internal: error.message
-      }
-    });
+    next(error);
   }
   
 }
 
-async function findById(req, res) {
+async function findById(req, res,next) {
   try {
     const { id } = req.params;
     
@@ -52,17 +62,11 @@ async function findById(req, res) {
 
     return res.status(200).json(agente);
   } catch (error) {
-    return res.status(404).json({
-      status: 404,
-      message: "Agente não encontrado",
-      errors: {
-        id: "Nenhum agente encontrado com o ID fornecido",
-      },
-    });
+    next(error);
   }
 }
 
-async function addAgente(req, res) {
+async function addAgente(req, res,next) {
 
 
   const agentSchema = z.object({
@@ -94,21 +98,15 @@ async function addAgente(req, res) {
 
 
   }catch (error) {
-    return res.status(500).json({
-      status: 500,
-      message: "Erro ao criar agente",
-      errors: {
-        internal: error.message
-      }
-    });
+    next(error);
   }
   
 }
 
-async function updateAgent(req, res) {
+async function updateAgent(req, res,next) {
 
-  
-  const agentSchema = z.object({
+ 
+    const agentSchema = z.object({
     nome: z.string().min(1, "Nome obrigatório"),
     dataDeIncorporacao: z.string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato YYYY-MM-DD")
@@ -117,7 +115,7 @@ async function updateAgent(req, res) {
         }),
     cargo: z.string().min(1, "Cargo obrigatório")
 }).strict();
-
+  try{
     const { id } = req.params;
 
      const idNum = Number(id);
@@ -147,11 +145,16 @@ async function updateAgent(req, res) {
     const updated = await agentesRepository.updateAgent(id, validatedData.data);
     
     return res.status(200).json(updated);
+  }catch (error){
+    next(error);
+  }
+  
 
   }
 
 
-async function partialUpdate(req, res) {
+async function partialUpdate(req, res,next) {
+  
     const agentSchema = z.object({
     nome: z.string().min(1, "Nome obrigatório").optional(),
     dataDeIncorporacao: z.string()
@@ -213,17 +216,14 @@ async function partialUpdate(req, res) {
 
   return res.status(200).json(updated);
   }catch (error) {
-    return res.status(500).json({
-      status: 500,
-      message: "Erro ao atualizar agente",
-    });
+    next(error);
   }
   
 }
 
-async function deleteAgent(req, res) {
-
-    const { id } = req.params;
+async function deleteAgent(req, res,next) {
+try{
+  const { id } = req.params;
     
      const idNum = Number(id);
 
@@ -262,6 +262,10 @@ async function deleteAgent(req, res) {
 
 
   return res.status(204).send();
+}catch (error) {
+    next(error);
+  }
+    
 }
 
 

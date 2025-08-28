@@ -1,18 +1,30 @@
+const { th } = require("zod/locales");
 const db = require("../db/db");
+const  QueryExceptionError  = require("../utils/QueryExceptionError");
+
 
 async function findAll(filters) {
 
     const query = db("agentes");
 
     if (filters.cargo) {
-      query.where("cargo", "like", `%${filters.cargo}%`);
-    }
+       const cargoExiste = await query
+      .where('cargo', 'like', `%${filters.cargo}%`)
+      .first()
+      .then(result => !!result);
 
-    if (filters.sort === "dataDeIncorporacao") {
-      query.orderBy("dataDeIncorporacao", "asc");
-    } else if (filters.sort === "-dataDeIncorporacao") {
-      query.orderBy("dataDeIncorporacao", "desc");
+      if (!cargoExiste){
+        throw new QueryExceptionError(`Cargo '${filters.cargo}' não encontrado.`);
+      }
+       query.where("cargo", "like", `%${filters.cargo}%`);
     }
+    
+   const validSortValues = ["dataDeIncorporacao", "-dataDeIncorporacao"];
+   if (filters.sort && !validSortValues.includes(filters.sort)){
+      throw new QueryExceptionError(`Parâmetro sort inválido. Valores aceitos: ${validSortValues.join(", ")}`);
+   }
+   
+
     const agentes = await query.select("*");
 
     if(agentes.length === 0) {

@@ -1,10 +1,10 @@
 const casosRepository = require("../repositories/casosRepository");
 const agentesRepository = require("../repositories/agentesRepository");
 
-const Joi = require("joi");
+
 const z = require("zod");
 
-async function getAllCasos(req, res) {
+async function getAllCasos(req, res,next) {
   try{
     const { status, agente_id, search } = req.query;
   const filters = { status, agente_id, search }
@@ -14,20 +14,14 @@ async function getAllCasos(req, res) {
   return res.status(200).json(casos);
 
   }catch (error) {
-    return res.status(500).json({
-      status: 500,
-      message: "Erro ao buscar casos",
-      errors: {
-        internal: error.message
-      }
-    });
+
+   next(error);
+      
+    };
   }
 
-  
-  
-}
 
-async function getCasoById(req, res) {
+async function getCasoById(req, res, next) {
 
 try{
 const { caso_id } = req.params;
@@ -48,8 +42,7 @@ const { caso_id } = req.params;
  
 }catch (error) {
        
-        console.error("Erro ao buscar caso:", error);
-        return res.status(500).json("Error ao buscar caso")
+        next(error);
     }
   
   
@@ -57,7 +50,7 @@ const { caso_id } = req.params;
 
 
 
-async function getAgenteAssociateToCase(req, res) {
+async function getAgenteAssociateToCase(req, res,next) {
   try{
 
     const { caso_id } = req.params;
@@ -82,17 +75,12 @@ async function getAgenteAssociateToCase(req, res) {
     return res.status(200).json(agente);
 
   }catch (error){
-      return res.status(500).json({
-      status: 500,
-      message: "Erro ao buscar casos",
-      errors: {
-        caso_id: error.message},
-    });
+      next(error);
   }
 
 }
 
-async function createCase(req, res) {
+async function createCase(req, res,next) {
 
    const createSchema = z.object({
     titulo: z.string().min(1, "Titulo Obrigatorio"),
@@ -135,17 +123,11 @@ async function createCase(req, res) {
    return res.status(201).json(createdCase);
 
 } catch (error) {
-  return res.status(500).json({
-    status: 500,
-    message: "Erro ao criar caso",
-    errors: {
-      internal: error.message
-    }
-  });
+  next(error);
   
 }}
 
-async function updateCase(req, res) {
+async function updateCase(req, res,next) {
 
 const updateSchema = z.object({
     titulo: z.string().min(1, "Titulo Obrigatorio"),
@@ -156,8 +138,8 @@ const updateSchema = z.object({
   
 
 
-
-    const { caso_id } = req.params;
+try{
+ const { caso_id } = req.params;
 
   const id = Number(caso_id);
   if (!Number.isInteger(id)) {
@@ -206,12 +188,16 @@ const updateSchema = z.object({
 
   const updated = await casosRepository.updateCase(caso_id, validatedData.data);
   return res.status(200).json(updated);
+}catch (error){
+    next(error);
+}
+   
   
 
   
 }
 
-async function  partialUpdateCase(req, res) {
+async function  partialUpdateCase(req, res,next) {
 
   const updateSchema = z.object({
     titulo: z.string().min(1, "Titulo Obrigatorio").optional(),
@@ -271,20 +257,14 @@ async function  partialUpdateCase(req, res) {
   return res.status(200).json(updated);
 
   }catch (error) {
-    return res.status(500).json({
-      status: 500,
-      message: "Erro ao atualizar caso",
-      errors: {
-        internal: error.message
-      }
-    });
+    next(error);
   }
   
 }
 
 async function deleteCase(req, res) {
-
-  const { caso_id } = req.params;
+  try{
+const { caso_id } = req.params;
 
   const id = Number(caso_id);
   if (!Number.isInteger(id)) {
@@ -304,6 +284,9 @@ async function deleteCase(req, res) {
   };
 
   return res.status(204).send();
+}catch (error) {
+    next(error);
+  }
 }
 
 module.exports = {
