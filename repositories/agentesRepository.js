@@ -8,7 +8,7 @@ async function findAll(filters) {
     const query = db("agentes");
 
     if (filters.cargo) {
-       const cargoExiste = await query
+       const cargoExiste = await db("agentes")
       .where('cargo', 'like', `%${filters.cargo}%`)
       .first()
       .then(result => !!result);

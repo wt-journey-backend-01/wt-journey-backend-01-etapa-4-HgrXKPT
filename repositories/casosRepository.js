@@ -8,39 +8,29 @@ const NotFoundExceptionError = require('../utils/NotFoundExceptionError');
 
  async function findAll(filters) {
   
-     let query = db('casos');
+     const query = db('casos');
 
     if(filters.status){
       
-     query = query.where('status', filters.status);
+      query.where('status', filters.status);
     }
 
     if(filters.agente_id){
       
-      query = query.where('agente_id', filters.agente_id);
+        query.where('agente_id', filters.agente_id);
     }
 
     if(filters.search){
       
 
-      query = query.where(function() {
+        query.where(function() {
         this.where('titulo', 'like', `%${filters.search}%`)
             .orWhere('descricao', 'like', `%${filters.search}%`);
       });
     }
     const casos = await query.select('*');
 
-    if(filters.status && casos.length === 0){
-      throw new QueryExceptionError(`Status '${filters.status}' não encontrado.`);
-    }
-
-     if(filters.agente_id && casos.length === 0){
-      throw new QueryExceptionError(`Agente com id '${filters.agente_id}' não encontrado.`);
-    }
-
-     if(filters.search && casos.length === 0){
-      throw new QueryExceptionError(`titulo ou descricao '${filters.search}' não encontrado.`);
-    }
+   
  
     return casos;
 

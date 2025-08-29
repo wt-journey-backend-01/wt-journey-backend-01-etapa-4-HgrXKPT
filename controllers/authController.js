@@ -27,7 +27,6 @@ async function login(req, res, next){
       });
     }
 
-    
 
     const user = await usuariosRepository.findUserByEmail(value.email);
 
