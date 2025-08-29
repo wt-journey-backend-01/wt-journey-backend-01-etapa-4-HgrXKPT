@@ -1,151 +1,139 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 4 créditos restantes para usar o sistema de feedback AI.
+Você tem 3 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para HgrXKPT:
 
 Nota final: **100.0/100**
 
-# Feedback para HgrXKPT 🚓🔐
+Olá, HgrXKPT! 🚀
 
-Olá, HgrXKPT! Primeiro, parabéns demais pelo seu esforço e dedicação! 🎉 Você entregou uma API robusta, organizada e com autenticação JWT, hashing de senhas e proteção de rotas — tudo isso com 100 pontos! Isso já mostra que seu código está muito bem estruturado e funcional. 👏👏👏
+Primeiramente, parabéns pelo seu empenho e dedicação! Você alcançou uma nota perfeita de **100.0/100** nos testes obrigatórios, o que já é um baita feito! 🎉 Isso mostra que sua API REST com Express.js, PostgreSQL, autenticação JWT e proteção de rotas está funcionando muito bem dentro do escopo principal do desafio.
 
----
+Além disso, você também conseguiu implementar vários bônus importantes, como:
 
-## 🎯 Conquistas e Pontos Fortes
+- Filtragem avançada de casos por status, agente e keywords.
+- Endpoint para buscar o agente responsável por um caso.
+- Ordenação e filtragem de agentes por data de incorporação.
+- Mensagens de erro customizadas para argumentos inválidos.
+- Endpoint `/usuarios/me` para retornar dados do usuário autenticado.
 
-- **Arquitetura muito bem organizada**: você seguiu direitinho a estrutura MVC, com controllers, repositories, middlewares, rotas e utils separados. Isso é essencial para manter o código escalável e fácil de manter.
-- **Autenticação completa com JWT e bcrypt**: você implementou registro, login, logout, refresh tokens e exclusão de usuários, tudo funcionando e com validação robusta usando Joi.
-- **Proteção das rotas /agentes e /casos com middleware JWT**: excelente uso do middleware para garantir que só usuários autenticados acessam dados sensíveis.
-- **Documentação Swagger**: suas rotas estão bem documentadas, facilitando o uso e testes da API.
-- **Tratamento e validação de dados com Zod e Joi**: você usou schemas para garantir que os dados recebidos estejam corretos, o que evita bugs e falhas de segurança.
-- **Testes base passaram 100%**: seu código passou em todos os testes obrigatórios, o que é um marco de qualidade e conformidade com o desafio.
-
-Além disso, você alcançou alguns bônus importantes:
-
-- Implementou refresh tokens para renovação segura do acesso.
-- Criou o endpoint `/usuarios/me` para pegar dados do usuário logado.
-- Implementou mensagens de erro customizadas no repositório para filtros inválidos.
+Essas conquistas extras indicam que você foi além do básico e entregou uma aplicação robusta e bem estruturada. Parabéns mesmo! 👏👏
 
 ---
 
-## 🚨 Análise dos Testes Bônus que Falharam
+### Agora, vamos conversar sobre os testes bônus que falharam e onde você pode melhorar para destravar 100% do bônus também, beleza? 🕵️‍♂️
 
-Você teve alguns testes bônus que falharam, principalmente relacionados a funcionalidades extras de filtragem e mensagens customizadas. Vamos analisar para que você saiba onde pode melhorar:
+---
 
-### 1. **Simple Filtering: Filtragem de casos por status, agente, keywords e busca de casos do agente**
+## Testes bônus que falharam
 
-- **Possível causa:**  
-  Seu `casosRepository.findAll` implementa filtros para `status`, `agente_id` e `search`, mas ele lança exceções do tipo `QueryExceptionError` quando não encontra registros para filtros específicos.  
-  Alguns testes bônus esperam que, ao filtrar e não encontrar resultados, seja retornada uma lista vazia (`[]`), e não que lance erro.
+- Simple Filtering: Estudante implementou endpoint de filtragem de caso por status corretamente
+- Simple Filtering: Estudante implementou endpoint de busca de agente responsável por caso
+- Simple Filtering: Estudante implementou endpoint de filtragem de caso por agente corretamente
+- Simple Filtering: Estudante implementou endpoint de filtragem de casos por keywords no título e/ou descrição
+- Simple filtering: Estudante implementou endpoint de busca de casos do agente
+- Complex Filtering: Estudante implementou endpoint de filtragem de agente por data de incorporacao com sorting em ordem crescente corretamente
+- Complex Filtering: Estudante implementou endpoint de filtragem de agente por data de incorporacao com sorting em ordem decrescente corretamente
+- Custom Error: Estudante implementou mensagens de erro customizadas para argumentos de agente inválidos corretamente
+- Custom Error: Estudante implementou mensagens de erro customizadas para argumentos de caso inválidos corretamente
+- User details: /usuarios/me retorna os dados do usuario logado e status code 200
 
-- **Análise técnica:**  
-  Veja trecho do seu código:
+---
+
+### Análise da causa raiz dos testes bônus que falharam
+
+Olhando seu código, você implementou a filtragem básica em `casosController.js` e `agentesRepository.js`, e também criou o endpoint `/usuarios/me`. Então, por que esses testes bônus falharam?
+
+1. **Filtros no endpoint de agentes (dataDeIncorporacao + sorting)**  
+   Você implementou filtragem e ordenação por cargo e dataDeIncorporacao, mas a filtragem por dataDeIncorporacao em si (ex: filtrar agentes que entraram após uma data específica) não está explícita no seu código. Seu filtro só aceita cargo e sort, por exemplo:
+
+   ```js
+   async function findAll(filters) {
+      const query = db("agentes");
+
+      if (filters.cargo) {
+         // filtro por cargo
+      }
+
+      if (filters.sort) {
+         // ordena por dataDeIncorporacao asc ou desc
+      }
+
+      // falta filtro por dataDeIncorporacao, ex: >= ou <= uma data
+   }
+   ```
+
+   O teste bônus provavelmente espera que você implemente filtros para, por exemplo, `dataDeIncorporacao_gte` (maior ou igual) ou `dataDeIncorporacao_lte` (menor ou igual). Essa filtragem extra não está implementada.
+
+2. **Filtros avançados em casos (busca por agente, status e keywords)**  
+   Seu código em `casosController.js` e `casosRepository.js` já implementa filtros por `status`, `agente_id` e `search` (keywords no título e descrição). Isso está correto. Porém, os testes bônus podem estar esperando mensagens de erro customizadas para argumentos inválidos (ex: status inválido, agente_id inválido). Seu código lança erros genéricos ou retorna 404, mas não customiza mensagens para os filtros inválidos no endpoint de listagem de casos.
+
+3. **Mensagens de erro customizadas para filtros inválidos**  
+   No seu `agentesRepository.js`, você lança uma exceção customizada `QueryExceptionError` para filtros inválidos, o que é ótimo! Porém, no `casosRepository.js` e `casosController.js`, não há tratamento semelhante para filtros inválidos. Isso pode fazer os testes de mensagens customizadas falharem.
+
+4. **Endpoint `/usuarios/me`**  
+   Você implementou o endpoint e o controller para retornar o usuário autenticado. Porém, a descrição do teste bônus indica que ele falhou. Provavelmente, o problema está na rota ou no middleware. Seu código em `routes/authRoutes.js` para essa rota está assim:
+
+   ```js
+   authRoutes.get('/usuarios/me', authMiddleware, authController.getLoggedUser);
+   ```
+
+   E no controller `authController.js`:
+
+   ```js
+   async function getLoggedUser(req, res,next ) {
+      try {
+          const { id } = req.user;    
+          const user = await usuariosRepository.findUserById(id);
+          if (!user) {
+              return res.status(404).json({ message: "Usuário não encontrado" });
+          }
+          const { senha, ...userWithoutPassword } = user;
+          return res.status(200).json(userWithoutPassword );
+      } catch (error) {
+          next(error);
+      }
+   }
+   ```
+
+   Isso parece correto, então o problema pode estar na forma como o token é gerado ou decodificado no middleware, ou no formato do token enviado nos testes. Verifique se o token JWT gerado tem o campo `id` no payload, pois seu middleware depende disso:
+
+   ```js
+   const decoded = tokenUtils.verifyAccessToken(token);
+   req.user = decoded;
+   ```
+
+   Se o token não tem `id`, `req.user.id` será undefined e o controller não encontrará o usuário.
+
+---
+
+### Pontos para você focar e corrigir para passar os bônus:
+
+- **Implementar filtros por dataDeIncorporacao no repositório de agentes**, aceitando parâmetros como `dataDeIncorporacao_gte` e `dataDeIncorporacao_lte` para filtrar agentes por intervalo de datas.
+
+  Exemplo de implementação:
 
   ```js
-  if(filters.status && casos.length === 0){
-    throw new QueryExceptionError(`Status '${filters.status}' não encontrado.`);
+  if (filters.dataDeIncorporacao_gte) {
+    query.where('dataDeIncorporacao', '>=', filters.dataDeIncorporacao_gte);
   }
-
-  if(filters.agente_id && casos.length === 0){
-    throw new QueryExceptionError(`Agente com id '${filters.agente_id}' não encontrado.`);
-  }
-
-  if(filters.search && casos.length === 0){
-    throw new QueryExceptionError(`titulo ou descricao '${filters.search}' não encontrado.`);
+  if (filters.dataDeIncorporacao_lte) {
+    query.where('dataDeIncorporacao', '<=', filters.dataDeIncorporacao_lte);
   }
   ```
 
-  Essa lógica pode estar conflitando com a expectativa dos testes bônus, que normalmente esperam que uma busca que não encontra resultados retorne simplesmente uma lista vazia, sem erro.
+- **Adicionar validação e mensagens customizadas para filtros inválidos no endpoint de listagem de casos** e agentes, para que o usuário saiba exatamente o que está errado.
 
-- **Sugestão:**  
-  Para comportamentos de filtros, retorne uma lista vazia quando não encontrar registros, e reserve erros para casos realmente excepcionais (ex: filtro inválido). Isso melhora a experiência da API e a compatibilidade com testes mais flexíveis.
+- **Verificar se o token JWT gerado contém o campo `id` no payload**. Isso é fundamental para que o middleware e o endpoint `/usuarios/me` funcionem corretamente.
 
----
-
-### 2. **Complex Filtering: Ordenação de agentes por data de incorporação (asc e desc)**
-
-- **Possível causa:**  
-  Seu filtro de `sort` no `agentesRepository.findAll` aceita os valores `"dataDeIncorporacao"` e `"-dataDeIncorporacao"`, e aplica ordenação condicional:
-
-  ```js
-  if (filters.sort) {
-    if (filters.sort === 'dataDeIncorporacao') {
-      query.orderBy('dataDeIncorporacao', 'asc');
-    } else if (filters.sort === '-dataDeIncorporacao') {
-      query.orderBy('dataDeIncorporacao', 'desc');
-    }
-  }
-  ```
-
-  Isso parece correto, mas os testes bônus podem estar esperando que o filtro de data funcione também sem o parâmetro `cargo` ou em outras combinações.
-
-- **Análise técnica:**  
-  Seu código também faz uma verificação inicial de existência do cargo:
-
-  ```js
-  if (filters.cargo) {
-    const cargoExiste = await query
-      .where('cargo', 'like', `%${filters.cargo}%`)
-      .first()
-      .then(result => !!result);
-
-    if (!cargoExiste){
-      throw new QueryExceptionError(`Cargo '${filters.cargo}' não encontrado.`);
-    }
-    query.where("cargo", "like", `%${filters.cargo}%`);
-  }
-  ```
-
-  Esse `await query.where(...).first()` pode estar alterando o objeto `query` original, causando efeitos colaterais na query final. Além disso, isso pode afetar o comportamento esperado para ordenação.
-
-- **Sugestão:**  
-  Para verificar a existência de um cargo, use uma query separada, para não afetar a query principal, por exemplo:
-
-  ```js
-  if (filters.cargo) {
-    const cargoExiste = await db('agentes')
-      .where('cargo', 'like', `%${filters.cargo}%`)
-      .first();
-
-    if (!cargoExiste) {
-      throw new QueryExceptionError(`Cargo '${filters.cargo}' não encontrado.`);
-    }
-    query.where("cargo", "like", `%${filters.cargo}%`);
-  }
-  ```
-
-  Assim, a query principal para busca e ordenação não será contaminada.
+- **Testar o fluxo completo de login, obtenção do token, e acesso ao endpoint `/usuarios/me`** para garantir que o token está sendo enviado corretamente no header `Authorization: Bearer <token>`.
 
 ---
 
-### 3. **Custom Error: Mensagens customizadas para argumentos inválidos**
+### Sobre a estrutura do seu projeto
 
-- Seu código lança erros customizados (`QueryExceptionError` e `NotFoundExceptionError`) para filtros inválidos ou dados não encontrados, o que é excelente! Porém, nos testes bônus, o formato e conteúdo da mensagem podem precisar ser ajustados para bater exatamente com o esperado.
-
-- Recomendo revisar os textos das mensagens e garantir que o middleware de tratamento (`errorHandler.js`) está convertendo essas exceções em respostas HTTP com status e JSON adequados.
-
----
-
-### 4. **User details: Endpoint `/usuarios/me`**
-
-- Seu endpoint `/usuarios/me` está implementado corretamente e protegido por middleware, retornando os dados do usuário logado sem a senha.  
-- O teste bônus falhou, provavelmente por detalhes de formato ou segurança.
-
-- Verifique se o seu controller `authController.getLoggedUser` está retornando exatamente o que o teste espera, por exemplo:
-
-  ```js
-  const { senha, ...userWithoutPassword } = user;
-  return res.status(200).json(userWithoutPassword);
-  ```
-
-- Além disso, confira se o middleware está populando `req.user` corretamente com o `id` do usuário.
-
----
-
-## 🗂️ Estrutura de Diretórios
-
-Sua estrutura está muito bem organizada e segue o padrão esperado:
+Sua estrutura está perfeita e segue exatamente o que foi pedido:
 
 ```
 📦 SEU-REPOSITÓRIO
@@ -183,51 +171,109 @@ Sua estrutura está muito bem organizada e segue o padrão esperado:
 │ └── errorHandler.js
 ```
 
-Isso é fundamental para manter a escalabilidade e facilitar a manutenção. Excelente!
+Parabéns por manter a organização e boas práticas! Isso facilita muito a manutenção e evolução do projeto.
 
 ---
 
-## 💡 Recomendações de Aprendizado para Você
+### Exemplos que podem te ajudar a implementar os filtros de data e mensagens customizadas:
 
-Para ajudar a aprimorar os pontos que falharam nos testes bônus, recomendo fortemente os seguintes vídeos, que vão te ajudar a entender melhor os conceitos e práticas:
+```js
+// Em agentesRepository.js - adicionando filtros por dataDeIncorporacao
+async function findAll(filters) {
+  const query = db("agentes");
 
-- **Autenticação JWT e Bcrypt:**  
-  [Esse vídeo, feito pelos meus criadores, fala muito bem sobre autenticação em Node.js usando JWT e bcrypt](https://www.youtube.com/watch?v=L04Ln97AwoY)
+  if (filters.cargo) {
+    // filtro por cargo
+  }
 
-- **JWT na prática:**  
-  [Entenda o funcionamento dos tokens JWT na prática](https://www.youtube.com/watch?v=keS0JWOypIU)
+  if (filters.dataDeIncorporacao_gte) {
+    query.where('dataDeIncorporacao', '>=', filters.dataDeIncorporacao_gte);
+  }
 
-- **Knex Query Builder:**  
-  [Guia detalhado do Knex Query Builder para manipular queries corretamente](https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s)
+  if (filters.dataDeIncorporacao_lte) {
+    query.where('dataDeIncorporacao', '<=', filters.dataDeIncorporacao_lte);
+  }
 
-- **Arquitetura MVC em Node.js:**  
-  [Aprenda sobre organização de projetos Node.js com arquitetura MVC para manter seu código limpo e escalável](https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s)
+  if (filters.sort) {
+    if (filters.sort === 'dataDeIncorporacao') {
+      query.orderBy('dataDeIncorporacao', 'asc');
+    } else if (filters.sort === '-dataDeIncorporacao') {
+      query.orderBy('dataDeIncorporacao', 'desc');
+    }
+  }
+
+  const agentes = await query.select("*");
+
+  if (agentes.length === 0) {
+    return null;
+  }
+
+  return agentes.map(agente => ({
+    ...agente,
+    dataDeIncorporacao: new Date(agente.dataDeIncorporacao).toISOString().split("T")[0]
+  }));
+}
+```
+
+```js
+// Em casosController.js - exemplo de validação customizada para filtros
+if (filters.status && !['aberto', 'solucionado'].includes(filters.status)) {
+  return res.status(400).json({
+    status: 400,
+    message: `Status inválido: ${filters.status}. Valores aceitos: aberto, solucionado`
+  });
+}
+```
 
 ---
 
-## 📋 Resumo dos Pontos para Melhorar
+### Sobre o token JWT e o campo `id`
 
-- [ ] Ajustar o comportamento do filtro `findAll` em `casosRepository` para retornar lista vazia em vez de erro quando não encontrar registros para filtros.
-- [ ] Corrigir a verificação de existência do `cargo` no filtro de agentes para não alterar a query principal.
-- [ ] Revisar mensagens de erro customizadas para garantir que estejam no formato esperado pelos testes bônus.
-- [ ] Confirmar que o endpoint `/usuarios/me` retorna exatamente o formato esperado, sem a senha e com dados corretos do usuário autenticado.
-- [ ] Garantir que o middleware `authMiddleware` popula `req.user` corretamente para uso nos controllers.
-- [ ] Continuar explorando o uso de refresh tokens e logout seguro para fortalecer a segurança da aplicação.
+No seu arquivo `utils/tokenUtils.js` (que não foi enviado aqui, mas que você tem no projeto), verifique se o payload do token inclui o campo `id` do usuário, pois seu `authMiddleware.js` e `authController.js` dependem disso.
+
+Exemplo de geração do token:
+
+```js
+function generateAccessToken(user) {
+  return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '15m' });
+}
+```
+
+Se você não incluir o `id` no payload, o middleware não conseguirá identificar o usuário e o endpoint `/usuarios/me` não funcionará.
 
 ---
 
-## 🔥 Conclusão
+### Recursos para você estudar e aprimorar ainda mais:
 
-Você fez um trabalho fantástico! Seu código está limpo, organizado e funcional, passando em todos os testes obrigatórios e implementando várias funcionalidades bônus importantes. Os pequenos ajustes que sugeri vão te ajudar a destravar todos os testes bônus e deixar sua API ainda mais profissional.
+- Para entender melhor autenticação JWT e bcrypt:  
+  https://www.youtube.com/watch?v=Q4LQOfYwujk  
+  *Esse vídeo, feito pelos meus criadores, fala muito bem sobre os conceitos básicos e fundamentais de cibersegurança, JWT e hashing de senhas.*
 
-Continue assim, aprendendo e evoluindo! 🚀💪
+- Para entender a manipulação avançada de filtros e queries com Knex.js:  
+  https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s  
+  *Guia detalhado do Knex Query Builder.*
 
-Se precisar de ajuda para entender os conceitos de autenticação, JWT, bcrypt ou Knex, não hesite em assistir os vídeos recomendados. Eles são ótimos para consolidar o conhecimento.
+- Para organização do projeto e arquitetura MVC:  
+  https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s  
+  *Esse vídeo vai te ajudar a entender como organizar seu código em controllers, repositories e rotas.*
 
-Parabéns novamente pela entrega! Estou aqui torcendo pelo seu sucesso! 🎉✨
+---
 
-Abraços virtuais,  
-Seu Code Buddy 🤖❤️
+### Resumo rápido dos pontos que você pode focar para melhorar e passar os bônus:
+
+- [ ] Implementar filtros por intervalo de datas (dataDeIncorporacao) no repositório de agentes.  
+- [ ] Adicionar validação e mensagens de erro customizadas para filtros inválidos em endpoints de listagem de casos e agentes.  
+- [ ] Garantir que o token JWT gerado contenha o campo `id` no payload para autenticação correta.  
+- [ ] Testar o fluxo completo de login, uso do token e acesso ao endpoint `/usuarios/me`.  
+- [ ] Revisar o arquivo `tokenUtils.js` para confirmar a geração e verificação dos tokens.  
+
+---
+
+HgrXKPT, você está no caminho certo e entregou uma aplicação muito sólida! Continue aprimorando os detalhes dos filtros e validações para destravar os bônus e deixar seu projeto ainda mais profissional. Estou aqui torcendo pelo seu sucesso! 🚀✨
+
+Se precisar de ajuda para implementar algum ponto, pode me chamar que eu te ajudo com exemplos e explicações detalhadas.
+
+Um grande abraço e continue codando com essa garra! 👊💻🔥
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
